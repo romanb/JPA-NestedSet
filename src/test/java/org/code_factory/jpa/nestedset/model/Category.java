@@ -10,6 +10,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import org.code_factory.jpa.nestedset.NodeInfo;
+import org.code_factory.jpa.nestedset.annotations.LeftColumn;
+import org.code_factory.jpa.nestedset.annotations.LevelColumn;
+import org.code_factory.jpa.nestedset.annotations.RightColumn;
+import org.code_factory.jpa.nestedset.annotations.RootColumn;
 
 /**
  * @author robo
@@ -21,11 +25,15 @@ public class Category implements NodeInfo {
     private String name;
 
     @Column(updatable=false)
+    @LeftColumn
     private int lft;
+    @RightColumn
     @Column(updatable=false)
     private int rgt;
+    @LevelColumn
     @Column(updatable=false)
     private int level;
+    @RootColumn
     private int rootId;
 
     @Override public int getId() {

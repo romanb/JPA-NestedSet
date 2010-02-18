@@ -5,10 +5,12 @@
 
 package org.code_factory.jpa.nestedset.annotations;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  *
  * @author robo
  */
-public @interface LeftColumn {
-
-}
+@Retention(RetentionPolicy.RUNTIME)
+public @interface LeftColumn {}

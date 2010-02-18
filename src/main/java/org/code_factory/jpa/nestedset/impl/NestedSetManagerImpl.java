@@ -9,6 +9,7 @@
 
 package org.code_factory.jpa.nestedset.impl;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,10 +24,13 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import net.jcip.annotations.NotThreadSafe;
-import org.code_factory.jpa.nestedset.Configuration;
 import org.code_factory.jpa.nestedset.NestedSetManager;
 import org.code_factory.jpa.nestedset.Node;
 import org.code_factory.jpa.nestedset.NodeInfo;
+import org.code_factory.jpa.nestedset.annotations.LeftColumn;
+import org.code_factory.jpa.nestedset.annotations.LevelColumn;
+import org.code_factory.jpa.nestedset.annotations.RightColumn;
+import org.code_factory.jpa.nestedset.annotations.RootColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,18 +45,14 @@ import org.slf4j.LoggerFactory;
 public class NestedSetManagerImpl implements NestedSetManager {
     private static Logger log = LoggerFactory.getLogger(NestedSetManagerImpl.class.getName());
     private EntityManager em;
-    private Configuration config;
     private Map<Key, Node<?>> nodes;
+    private Map<Class<?>, Configuration> configs;
 
     @Inject
     public NestedSetManagerImpl(EntityManager em) {
         this.em = em;
-        this.config = new Configuration(); //TODO
         this.nodes = new HashMap<Key, Node<?>>();
-    }
-
-    public Configuration getConfiguration() {
-        return this.config;
+        this.configs = new HashMap<Class<?>, Configuration>();
     }
 
     @Override
@@ -65,6 +65,11 @@ public class NestedSetManagerImpl implements NestedSetManager {
         this.nodes.clear();
     }
 
+    /**
+     * Gets all currently managed nodes.
+     *
+     * @return A read-only collection of the currently managed nodes.
+     */
     @Override
     public Collection<Node<?>> getNodes() {
         return Collections.unmodifiableCollection(this.nodes.values());
@@ -77,12 +82,13 @@ public class NestedSetManagerImpl implements NestedSetManager {
 
     @Override
     public <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId) {
+        Configuration config = getConfig(clazz);
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<T> cq = cb.createQuery(clazz);
         Root<T> queryRoot = cq.from(clazz);
         cq.where(cb.ge(queryRoot.get(config.getLeftFieldName()).as(Number.class), 1));
         cq.orderBy(cb.asc(queryRoot.get(config.getLeftFieldName())));
-        applyRootId(cq, rootId);
+        applyRootId(clazz, cq, rootId);
 
         List<Node<T>> tree = new ArrayList<Node<T>>();
         for (T n : em.createQuery(cq).getResultList()) {
@@ -107,7 +113,7 @@ public class NestedSetManagerImpl implements NestedSetManager {
      * @param <T>
      * @param treeList
      * @param maxLevel
-     * @return
+     * @return void
      */
     private <T extends NodeInfo> void buildTree(List<Node<T>> treeList, int maxLevel) {
         Node<T> rootNode = treeList.get(0);
@@ -183,6 +189,30 @@ public class NestedSetManagerImpl implements NestedSetManager {
         return node;
     }
 
+    Configuration getConfig(Class<?> clazz) {
+        if (!this.configs.containsKey(clazz)) {
+            Configuration config = new Configuration();
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.getAnnotation(LeftColumn.class) != null) {
+                    config.setLeftFieldName(field.getName());
+                }
+                else if (field.getAnnotation(RightColumn.class) != null) {
+                    config.setRightFieldName(field.getName());
+                }
+                else if (field.getAnnotation(LevelColumn.class) != null) {
+                    config.setLevelFieldName(field.getName());
+                }
+                else if (field.getAnnotation(RootColumn.class) != null) {
+                    config.setRootIdFieldName(field.getName());
+                }
+            }
+
+            this.configs.put(clazz, config);
+        }
+
+        return this.configs.get(clazz);
+    }
+
     /**
      * INTERNAL:
      * Applies the root ID criteria to the given CriteriaQuery.
@@ -190,7 +220,8 @@ public class NestedSetManagerImpl implements NestedSetManager {
      * @param cq
      * @param rootId
      */
-    void applyRootId(CriteriaQuery<?> cq, int rootId) {
+    void applyRootId(Class<?> clazz, CriteriaQuery<?> cq, int rootId) {
+        Configuration config = getConfig(clazz);
         if (config.getRootIdFieldName() != null) {
             Root<?> root = cq.getRoots().iterator().next();
             CriteriaBuilder cb = em.getCriteriaBuilder();

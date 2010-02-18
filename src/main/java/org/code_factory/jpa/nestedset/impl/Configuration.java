@@ -7,17 +7,20 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.code_factory.jpa.nestedset.impl;
 
 /**
+ * A configuration for a class managed by a NestedSetManager.
  *
  * @author robo
  */
-public class Configuration {
-    private String leftFieldName = "lft";
-    private String rightFieldName = "rgt";
-    private String levelFieldName = "level";
-    private String rootIdFieldName = "rootId";
+class Configuration {
+    private String leftFieldName;
+    private String rightFieldName;
+    private String levelFieldName;
+    private String rootIdFieldName;
+
+    private boolean hasManyRoots = false;
 
     /**
      * @return the leftFieldName
@@ -73,6 +76,15 @@ public class Configuration {
      */
     public void setRootIdFieldName(String rootIdFieldName) {
         this.rootIdFieldName = rootIdFieldName;
+        this.hasManyRoots = true;
     }
 
+    public boolean hasManyRoots() {
+        return this.hasManyRoots;
+    }
+
+    @Override public String toString() {
+        return "[leftFieldName: " + this.leftFieldName + ", rightFieldName:" + this.rightFieldName
+                + ", levelFieldName: " + this.levelFieldName + ", rootIdFieldName:" + this.rootIdFieldName + "]";
+    }
 }

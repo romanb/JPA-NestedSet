@@ -213,15 +213,15 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         cq.where(cb.lt(
-                    queryRoot.get(nsm.getConfiguration().getLeftFieldName()).as(Number.class),
+                    queryRoot.get(nsm.getConfig(this.type).getLeftFieldName()).as(Number.class),
                     getLeftValue()
                     ),
                 cb.gt(
-                    queryRoot.get(nsm.getConfiguration().getRightFieldName()).as(Number.class),
+                    queryRoot.get(nsm.getConfig(this.type).getRightFieldName()).as(Number.class),
                     getRightValue()
                     ));
-        cq.orderBy(cb.asc(queryRoot.get(nsm.getConfiguration().getRightFieldName())));
-        nsm.applyRootId(cq, getRootValue());
+        cq.orderBy(cb.asc(queryRoot.get(nsm.getConfig(this.type).getRightFieldName())));
+        nsm.applyRootId(this.type, cq, getRootValue());
 
         List<T> result = nsm.getEntityManager().createQuery(cq).getResultList();
 
@@ -254,11 +254,11 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         CriteriaQuery<T> cq = getBaseQuery();
         Predicate wherePredicate = cb.and(
                 cb.gt(
-                    queryRoot.get(nsm.getConfiguration().getLeftFieldName()).as(Number.class),
+                    queryRoot.get(nsm.getConfig(this.type).getLeftFieldName()).as(Number.class),
                     getLeftValue()
                     ),
                 cb.lt(
-                    queryRoot.get(nsm.getConfiguration().getRightFieldName()).as(Number.class),
+                    queryRoot.get(nsm.getConfig(this.type).getRightFieldName()).as(Number.class),
                     getRightValue()
                     ));
 
@@ -266,14 +266,14 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
             wherePredicate = cb.and(
                     wherePredicate,
                     cb.le(
-                        queryRoot.get(nsm.getConfiguration().getLevelFieldName()).as(Number.class),
+                        queryRoot.get(nsm.getConfig(this.type).getLevelFieldName()).as(Number.class),
                         getLevel() + depth)
                         );
         }
         cq.where(wherePredicate);
-        cq.orderBy(cb.asc(queryRoot.get(nsm.getConfiguration().getLeftFieldName())));
+        cq.orderBy(cb.asc(queryRoot.get(nsm.getConfig(this.type).getLeftFieldName())));
 
-        nsm.applyRootId(cq, getRootValue());
+        nsm.applyRootId(this.type, cq, getRootValue());
 
         List<Node<T>> nodes = new ArrayList<Node<T>>();
         for (T n : nsm.getEntityManager().createQuery(cq).getResultList()) {
@@ -411,9 +411,9 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     @Override public void delete() {
         //TODO: Remove deleted nodes that are in-memory from NestedSetManagerImpl.
         int oldRoot = getRootValue();
-        String rootIdFieldName = nsm.getConfiguration().getRootIdFieldName();
-        String leftFieldName = nsm.getConfiguration().getLeftFieldName();
-        String rightFieldName = nsm.getConfiguration().getRightFieldName();
+        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
+        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
+        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
 
         StringBuilder sb = new StringBuilder();
         sb.append("delete from " )
@@ -450,9 +450,9 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
      * @param rootId The root/tree ID of the nodes to shift.
      */
     private void shiftRLValues(int first, int last, int delta, int rootId) {
-        String rootIdFieldName = nsm.getConfiguration().getRootIdFieldName();
-        String leftFieldName = nsm.getConfiguration().getLeftFieldName();
-        String rightFieldName = nsm.getConfiguration().getRightFieldName();
+        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
+        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
+        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
 
         // Shift left values
         StringBuilder sbLeft = new StringBuilder();
@@ -532,9 +532,9 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
 
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
-        cq.where(cb.equal(queryRoot.get(nsm.getConfiguration().getLeftFieldName()), getLeftValue() + 1));
+        cq.where(cb.equal(queryRoot.get(nsm.getConfig(this.type).getLeftFieldName()), getLeftValue() + 1));
 
-        nsm.applyRootId(cq, getRootValue());
+        nsm.applyRootId(this.type, cq, getRootValue());
 
         return nsm.getNode(nsm.getEntityManager().createQuery(cq).getSingleResult());
     }
@@ -551,9 +551,9 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
 
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
-        cq.where(cb.equal(queryRoot.get(nsm.getConfiguration().getRightFieldName()), getRightValue() - 1));
+        cq.where(cb.equal(queryRoot.get(nsm.getConfig(this.type).getRightFieldName()), getRightValue() - 1));
 
-        nsm.applyRootId(cq, getRootValue());
+        nsm.applyRootId(this.type, cq, getRootValue());
 
         return nsm.getNode(nsm.getEntityManager().createQuery(cq).getSingleResult());
     }
@@ -573,20 +573,14 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         Predicate wherePredicate = cb.and(
-                cb.lt(queryRoot.get(nsm.getConfiguration().getLeftFieldName()).as(Number.class), getLeftValue()),
-                cb.gt(queryRoot.get(nsm.getConfiguration().getRightFieldName()).as(Number.class), getRightValue())
+                cb.lt(queryRoot.get(nsm.getConfig(this.type).getLeftFieldName()).as(Number.class), getLeftValue()),
+                cb.gt(queryRoot.get(nsm.getConfig(this.type).getRightFieldName()).as(Number.class), getRightValue())
                 );
-        /*
-        if (depth > 0) {
-            wherePredicate = cb.and(wherePredicate,
-                    cb.ge(queryRoot.get(nsm.getConfiguration().getLevelFieldName()).as(Number.class), getLevel() - depth)
-                    );
-        }
-        */
-        cq.where(wherePredicate);
-        cq.orderBy(cb.asc(queryRoot.get(nsm.getConfiguration().getLeftFieldName())));
 
-        nsm.applyRootId(cq, getRootValue());
+        cq.where(wherePredicate);
+        cq.orderBy(cb.asc(queryRoot.get(nsm.getConfig(this.type).getLeftFieldName())));
+
+        nsm.applyRootId(this.type, cq, getRootValue());
 
         List<Node<T>> nodes = new ArrayList<Node<T>>();
 
@@ -667,10 +661,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
             right += treeSize;
         }
 
-        String levelFieldName = nsm.getConfiguration().getLevelFieldName();
-        String leftFieldName = nsm.getConfiguration().getLeftFieldName();
-        String rightFieldName = nsm.getConfiguration().getRightFieldName();
-        String rootIdFieldName = nsm.getConfiguration().getRootIdFieldName();
+        String levelFieldName = nsm.getConfig(this.type).getLevelFieldName();
+        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
+        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
+        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
 
         // update level for descendants
         StringBuilder updateQuery = new StringBuilder();
@@ -772,10 +766,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
      * @param moveType
      */
     private void moveBetweenTrees(Node<T> dest, int newLeftValue, int moveType) {
-        String leftFieldName = nsm.getConfiguration().getLeftFieldName();
-        String rightFieldName = nsm.getConfiguration().getRightFieldName();
-        String levelFieldName = nsm.getConfiguration().getLevelFieldName();
-        String rootIdFieldName = nsm.getConfiguration().getRootIdFieldName();
+        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
+        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
+        String levelFieldName = nsm.getConfig(this.type).getLevelFieldName();
+        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
 
         // Move between trees: Detach from old tree & insert into new tree
         int newRoot = dest.getRootValue();
@@ -859,10 +853,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
             return;
         }
 
-        String leftFieldName = nsm.getConfiguration().getLeftFieldName();
-        String rightFieldName = nsm.getConfiguration().getRightFieldName();
-        String levelFieldName = nsm.getConfiguration().getLevelFieldName();
-        String rootIdFieldName = nsm.getConfiguration().getRootIdFieldName();
+        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
+        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
+        String levelFieldName = nsm.getConfig(this.type).getLevelFieldName();
+        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
 
         int oldRgt = getRightValue();
         int oldLft = getLeftValue();

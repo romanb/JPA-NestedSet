@@ -66,20 +66,24 @@ public class NestedSetManagerImpl implements NestedSetManager {
     }
 
     /**
-     * Gets all currently managed nodes.
-     *
-     * @return A read-only collection of the currently managed nodes.
+     * {@inheritDoc}
      */
     @Override
     public Collection<Node<?>> getNodes() {
         return Collections.unmodifiableCollection(this.nodes.values());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz) {
         return fetchTreeAsList(clazz, 0);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId) {
         Configuration config = getConfig(clazz);
@@ -100,6 +104,9 @@ public class NestedSetManagerImpl implements NestedSetManager {
         return tree;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId) {
         return fetchTreeAsList(clazz, rootId).get(0);
@@ -151,11 +158,7 @@ public class NestedSetManagerImpl implements NestedSetManager {
     }
 
     /**
-     * Creates a root node for the given NodeInfo instance.
-     *
-     * @param <T>
-     * @param root
-     * @return The created node instance.
+     * {@inheritDoc}
      */
     @Override
     public <T extends NodeInfo> Node<T> createRoot(T root) {
@@ -165,13 +168,9 @@ public class NestedSetManagerImpl implements NestedSetManager {
         em.persist(root);
         return getNode(root);
     }
-
+    
     /**
-     * Gets the node that represents the given NodeInfo instance in the tree.
-     *
-     * @param <T>
-     * @param nodeInfo
-     * @return The node.
+     * {@inheritDoc}
      */
     @Override
     public <T extends NodeInfo> Node<T> getNode(T nodeInfo) {
@@ -189,6 +188,13 @@ public class NestedSetManagerImpl implements NestedSetManager {
         return node;
     }
 
+    /**
+     * INTERNAL:
+     * Gets the nestedset configuration for the given class.
+     *
+     * @param clazz
+     * @return The configuration.
+     */
     Configuration getConfig(Class<?> clazz) {
         if (!this.configs.containsKey(clazz)) {
             Configuration config = new Configuration();

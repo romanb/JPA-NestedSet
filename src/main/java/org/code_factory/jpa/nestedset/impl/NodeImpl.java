@@ -132,13 +132,15 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         return node != null && node.getRightValue() > node.getLeftValue();
     }
 
+    /*
     public void setBaseQuery(CriteriaQuery<T> cq) {
         // The first root must be of the wrapped node type.
         this.queryRoot = (Root<T>) cq.getRoots().iterator().next();
         this.baseQuery = cq;
     }
+    */
 
-    public CriteriaQuery<T> getBaseQuery() {
+    /* public */ private CriteriaQuery<T> getBaseQuery() {
         if (this.baseQuery == null) {
             this.baseQuery = nsm.getEntityManager().getCriteriaBuilder().createQuery(type);
             this.queryRoot = this.baseQuery.from(type);

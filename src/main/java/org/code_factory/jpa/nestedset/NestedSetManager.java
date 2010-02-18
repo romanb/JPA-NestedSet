@@ -19,7 +19,11 @@ import javax.persistence.EntityManager;
  * @author Roman Borschel <roman@code-factory.org>
  */
 public interface NestedSetManager {
-
+    /**
+     * Clears the NestedSetManager, removing all managed nodes.
+     *
+     * @return void
+     */
     void clear();
 
     /**
@@ -31,12 +35,40 @@ public interface NestedSetManager {
      */
     <T extends NodeInfo> Node<T> createRoot(T root);
 
+    /**
+     * Fetches a complete tree, returning the root node of the tree.
+     *
+     * @param <T>
+     * @param clazz
+     * @param rootId
+     * @return The root node of the tree.
+     */
     <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId);
 
+    /**
+     * Fetches a complete tree and returns the tree as a list.
+     *
+     * @param <T>
+     * @param clazz
+     * @return The tree in form of a list, starting with the root node.
+     */
     <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz);
 
+    /**
+     * Fetches a complete tree and returns the tree as a list.
+     *
+     * @param <T>
+     * @param clazz
+     * @param rootId
+     * @return The tree in form of a list, starting with the root node.
+     */
     <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId);
 
+    /**
+     * Gets the EntityManager used by this NestedSetManager.
+     *
+     * @return The EntityManager.
+     */
     EntityManager getEntityManager();
 
     /**
@@ -48,6 +80,10 @@ public interface NestedSetManager {
      */
     <T extends NodeInfo> Node<T> getNode(T nodeInfo);
 
+    /**
+     * Gets a collection of all nodes currently managed by the NestedSetManager.
+     *
+     * @return The collection of nodes.
+     */
     Collection<Node<?>> getNodes();
-
 }

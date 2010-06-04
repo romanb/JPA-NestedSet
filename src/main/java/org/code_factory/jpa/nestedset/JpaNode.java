@@ -9,7 +9,6 @@
 
 package org.code_factory.jpa.nestedset;
 
-import org.code_factory.jpa.nestedset.JpaNestedSetManager;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Query;
@@ -18,8 +17,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import net.jcip.annotations.NotThreadSafe;
-import org.code_factory.jpa.nestedset.Node;
-import org.code_factory.jpa.nestedset.NodeInfo;
 
 /**
  * A decorator for a {@link NodeInfo} implementation that enriches it with the full API
@@ -36,14 +33,14 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     private static final int LAST_CHILD = 4;
 
     /** The wrapped NodeInfo implementor. */
-    private T node;
+    private final T node;
     /** The type of the wrapped instance. */
-    private Class<T> type;
+    private final Class<T> type;
     private CriteriaQuery<T> baseQuery;
     private Root<T> queryRoot;
 
     /** The JpaNestedSetManager that manages this node. */
-    private JpaNestedSetManager nsm;
+    private final JpaNestedSetManager nsm;
 
     /* "Caches" of the tree state reachable from this node. These are cleared whenever the
      *  node is rendered invalid due to tree modifications.

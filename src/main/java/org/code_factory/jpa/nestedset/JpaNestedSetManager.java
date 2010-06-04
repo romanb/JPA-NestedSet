@@ -192,7 +192,6 @@ public class JpaNestedSetManager implements NestedSetManager {
             throw new IllegalArgumentException("The given NodeInfo instance has no position " +
                     "in a tree and is thus not yet a node.");
         }
-        System.out.println("PUTTING NODE");
         this.nodes.put(key, node);
 
         return node;
@@ -304,15 +303,11 @@ public class JpaNestedSetManager implements NestedSetManager {
     }
 
     void removeNodes(int left, int right, int rootId) {
-        System.out.println("REMOVING NODES: " + left + ", " + right + ", " + rootId);
         Set<Key> removed = new HashSet<Key>();
         for (Node<?> node : this.nodes.values()) {
             if (node.getRootValue() == rootId) {
-                System.out.println("REMOVING...");
                 if (node.getLeftValue() >= left && node.getRightValue() <= right) {
-                    System.out.println("REALLY REMOVING..." + node.getId());
                     removed.add(new Key(node.unwrap().getClass(), node.getId()));
-                    System.out.println("REMOVED: " + removed);
                 }
             }
         }

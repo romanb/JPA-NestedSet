@@ -7,8 +7,9 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset.impl;
+package org.code_factory.jpa.nestedset;
 
+import org.code_factory.jpa.nestedset.JpaNestedSetManager;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Query;
@@ -21,13 +22,14 @@ import org.code_factory.jpa.nestedset.Node;
 import org.code_factory.jpa.nestedset.NodeInfo;
 
 /**
- * A decorator for a NodeInfo implementation that enriches it with the full API
+ * A decorator for a {@link NodeInfo} implementation that enriches it with the full API
  * of a node in a nested set tree.
  *
+ * @param <T extends NodeInfo> The wrapped entity type.
  * @author Roman Borschel <roman@code-factory.org>
  */
 @NotThreadSafe
-class NodeImpl<T extends NodeInfo> implements Node<T> {
+class JpaNode<T extends NodeInfo> implements Node<T> {
     private static final int PREV_SIBLING = 1;
     private static final int FIRST_CHILD = 2;
     private static final int NEXT_SIBLING = 3;
@@ -40,9 +42,12 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     private CriteriaQuery<T> baseQuery;
     private Root<T> queryRoot;
 
-    /** The NestedSetManagerImpl that manages this node. */
-    private NestedSetManagerImpl nsm;
+    /** The JpaNestedSetManager that manages this node. */
+    private JpaNestedSetManager nsm;
 
+    /* "Caches" of the tree state reachable from this node. These are cleared whenever the
+     *  node is rendered invalid due to tree modifications.
+     */
     private List<Node<T>> children;
     private Node<T> parent;
     private List<Node<T>> ancestors;
@@ -50,7 +55,7 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     private int descendantDepth = 0;
 
     @SuppressWarnings("unchecked")
-    public NodeImpl(T node, NestedSetManagerImpl nsm) {
+    public JpaNode(T node, JpaNestedSetManager nsm) {
         this.node = node;
         this.nsm = nsm;
         this.type = (Class<T>) node.getClass();
@@ -92,7 +97,8 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         this.node.setLevel(level);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "[Left: " + node.getLeftValue() +
                 ", Right: " + node.getRightValue() +
                 ", Level: " + node.getLevel() +
@@ -101,30 +107,26 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Tests if the node has any children.
-     *
-     * @return TRUE if the node has children, FALSE otherwise.
+     * {@inheritDoc}
      */
-    @Override public boolean hasChildren() {
+    @Override
+    public boolean hasChildren() {
         return (getRightValue() - getLeftValue()) > 1;
     }
 
     /**
-     * Tests if the node has a parent. If it does not have a parent, it is a root node.
-     *
-     * @return TRUE if this node has a parent node, FALSE otherwise.
+     * {@inheritDoc}
      */
-    @Override public boolean hasParent() {
+    @Override
+    public boolean hasParent() {
         return !isRoot();
     }
 
     /**
-     * Tests whether the node is a valid node. A valid node is a node with a valid
-     * position in the tree, represented by its left, right and level values.
-     *
-     * @return TRUE if the node is valid, FALSE otherwise.
+     * {@inheritDoc}
      */
-    @Override public boolean isValid() {
+    @Override
+    public boolean isValid() {
         return isValidNode(this);
     }
 
@@ -178,21 +180,19 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }*/
 
     /**
-     * Tests if this node is a root node.
-     *
-     * @return TRUE if this node is a root node, FALSE otherwise.
+     * {@inheritDoc}
      */
-    @Override public boolean isRoot() {
+    @Override
+    public boolean isRoot() {
         return getLeftValue() == 1;
     }
 
     /**
-     * Gets the children children of the node (direct descendants).
-     *
-     * @return The children of the node.
+     * {@inheritDoc}
      * @todo Better return an unmodifiable list instead?
      */
-    @Override public List<Node<T>> getChildren() {
+    @Override
+    public List<Node<T>> getChildren() {
         if (this.children != null) {
             return this.children;
         }
@@ -200,11 +200,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Gets the parent node of this node.
-     *
-     * @return The parent node or NULL if there is no parent node.
+     * {@inheritDoc}
      */
-    @Override public Node<T> getParent() {
+    @Override
+    public Node<T> getParent() {
         if (isRoot()) {
             return null;
         }
@@ -233,18 +232,14 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Gets the descendants of this node.
-     *
-     * @return The descendants of this node.
+     * {@inheritDoc}
      */
     @Override public List<Node<T>> getDescendants() {
         return getDescendants(0);
     }
     
     /**
-     * Gets descendants of this node, up to a certain depth.
-     *
-     * @return The descendants of the node, up to the specified depth.
+     * {@inheritDoc}
      */
     @Override public List<Node<T>> getDescendants(int depth) {
         if (this.descendants != null && (depth == 0 && this.descendantDepth == 0 || depth <= this.descendantDepth)) {
@@ -293,10 +288,7 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Adds a node as the last child of this node.
-     *
-     * @param child The child to add.
-     * @return The newly inserted child node.
+     * {@inheritDoc}
      */
     @Override public Node<T> addChild(T child) {
         if (child == this.node) {
@@ -406,12 +398,11 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Deletes the node and all its descendants from the tree.
-     *
-     * @return void
+     * {@inheritDoc}
      */
-    @Override public void delete() {
-        //TODO: Remove deleted nodes that are in-memory from NestedSetManagerImpl.
+    @Override
+    public void delete() {
+        //TODO: Remove deleted nodes that are in-memory from JpaNestedSetManager.
         int oldRoot = getRootValue();
         String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
         String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
@@ -428,8 +419,8 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         }
 
         Query q = nsm.getEntityManager().createQuery(sb.toString());
-        q.setParameter(1, this.getLeftValue());
-        q.setParameter(2, this.getRightValue());
+        q.setParameter(1, getLeftValue());
+        q.setParameter(2, getRightValue());
         if (rootIdFieldName != null) {
             q.setParameter(3, oldRoot);
         }
@@ -439,6 +430,8 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         int first = getRightValue() + 1;
         int delta = getLeftValue() - getRightValue() - 1;
         shiftRLValues(first, 0, delta, oldRoot);
+
+        nsm.removeNodes(getLeftValue(), getRightValue(), oldRoot);
     }
 
     /**
@@ -509,6 +502,9 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         this.nsm.updateRightValues(first, last, delta, rootId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override public T unwrap() {
         return this.node;
     }
@@ -523,11 +519,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Gets the first child node of this node.
-     *
-     * @return The first child node of this node.
+     * {@inheritDoc}
      */
-    @Override public Node<T> getFirstChild() {
+    @Override
+    public Node<T> getFirstChild() {
         if (this.children != null) {
             return this.children.get(0);
         }
@@ -542,10 +537,9 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Gets the last child node of this node.
-     *
-     * @return The last child node.
+     * {@inheritDoc}
      */
+    @Override
     public Node<T> getLastChild() {
         if (this.children != null) {
             return this.children.get(this.children.size() - 1);
@@ -561,13 +555,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
     
     /**
-     * Gets all ancestors of this node.
-     *
-     * @param int depth The depth "upstairs".
-     * @return The ancestors of the node or FALSE if the node has no ancestors (this
-     *                basically means it's a root node).
+     * {@inheritDoc}
      */
-    @Override public List<Node<T>> getAncestors() {
+    @Override
+    public List<Node<T>> getAncestors() {
         if (this.ancestors != null) {
             return this.ancestors;
         }
@@ -596,23 +587,15 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Determines if this node is a descendant of the given node.
-     *
-     * @return boolean
+     * {@inheritDoc}
      */
-    @Override public boolean isDescendantOf(Node<T> subj) {
+    @Override
+    public boolean isDescendantOf(Node<T> subj) {
         return ((getLeftValue() > subj.getLeftValue()) &&
                 (getRightValue() < subj.getRightValue()) &&
                 (getRootValue() == subj.getRootValue()));
     }
 
-    /**
-     * gets path to node from root, uses record::toString() method to get node names
-     *
-     * @param string     $seperator     path seperator
-     * @param bool     $includeNode     whether or not to include node at end of path
-     * @return string     string representation of path
-     */
     public String getPath(String seperator) {
         StringBuilder path = new StringBuilder();
         List<Node<T>> ancestors = getAncestors();
@@ -624,11 +607,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Moves this node as the previous sibling of the given node.
-     *
-     * @param dest
+     * {@inheritDoc}
      */
-    @Override public void moveAsPrevSiblingOf(Node<T> dest) {
+    @Override
+    public void moveAsPrevSiblingOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot move node as previous sibling of itself");
         }
@@ -697,12 +679,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Moves this node in the tree, positioning it as the successive sibling of
-     * the given node.
-     *
-     * @param dest
+     * {@inheritDoc}
      */
-    @Override public void moveAsNextSiblingOf(Node<T> dest) {
+    @Override
+    public void moveAsNextSiblingOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot move node as next sibling of itself");
         }
@@ -717,12 +697,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Moves this node in the tree, positioning it as the first child of
-     * the given node.
-     *
-     * @param dest
+     * {@inheritDoc}
      */
-    @Override public void moveAsFirstChildOf(Node<T> dest) {
+    @Override
+    public void moveAsFirstChildOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot move node as first child of itself");
         }
@@ -738,12 +716,10 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Moves this node in the tree, positioning it as the last child of
-     * the given node.
-     *
-     * @param dest
+     * {@inheritDoc}
      */
-    @Override public void moveAsLastChildOf(Node<T> dest) {
+    @Override
+    public void moveAsLastChildOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot move node as first child of itself");
         }
@@ -757,7 +733,6 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
             updateNode(dest.getRightValue(), getLevel() - oldLevel);
         }
     }
-
 
     /**
      * Accomplishes moving of nodes between different trees.
@@ -809,7 +784,6 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
 
         //int diff = oldRgt - oldLft;
         setRightValue(getLeftValue() + (oldRgt - oldLft));
-        //$this ->  _node ->  save();
 
         int newLevel = getLevel();
         int levelDiff = newLevel - oldLevel;
@@ -901,6 +875,11 @@ class NodeImpl<T extends NodeInfo> implements Node<T> {
         setRootValue(newRootId);
         setLevel(0);
     }
+
+    //
+    // Internal tree management methods used for preconstructing and invalidating the parts
+    // of a tree reachable directly from this node.
+    //
 
     void invalidate() {
         // Clear all local caches of other nodes, so that they're re-evaluated.

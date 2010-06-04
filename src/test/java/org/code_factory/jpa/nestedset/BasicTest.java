@@ -14,6 +14,7 @@ import java.util.List;
 import org.code_factory.jpa.nestedset.model.Category;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 /**
  * @author Roman Borschel <roman@code-factory.org>
@@ -250,17 +251,33 @@ public class BasicTest extends FunctionalNestedSetTest {
         em.getTransaction().commit();
     }
 
-    @Test public void testDeleteNode() {
+    @Test
+    public void testDeleteNode() {
         this.createBasicTree();
-
+        
         em.getTransaction().begin();
-        Node<Category> netNode = nsm.getNode(em.find(Category.class, this.netCat.getId()));
+        // fetch the tree
+        Node<Category> progNode = nsm.fetchTree(Category.class, this.progCat.getRootValue());
+        assertEquals(progNode.getChildren().size(), 2);
+        assert 1 == progNode.getLeftValue();
+        assert 6 == progNode.getRightValue();
+
+        // delete the .NET node
+        Category netCat2 = em.find(Category.class, this.netCat.getId());
+        Node<Category> netNode = nsm.getNode(netCat2);
         netNode.delete();
         
-        Node<Category> progNode = nsm.getNode(em.find(Category.class, this.progCat.getId()));
-
+        // check in-memory state of tree
+        assert 1 == progNode.getLeftValue();
         assert 4 == progNode.getRightValue();
-        
+        assertFalse(em.contains(netCat2));
+        assertTrue(em.contains(progNode.unwrap()));
+        assertEquals(progNode.getChildren().size(), 1);
+        try {
+            nsm.getNode(netCat2);
+            fail("Retrieving node for deleted category should fail.");
+        } catch (IllegalArgumentException expected) {}
+
         em.getTransaction().commit();
     }
 }

@@ -14,13 +14,16 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 /**
- * Contract for a nestedset manager.
+ * A <tt>NestedSetManager</tt> is used to read and manipulate the nested set tree structure of
+ * classes that implement {@link NodeInfo} using and where each instance thus has a position in a
+ * nested set tree.
  *
  * @author Roman Borschel <roman@code-factory.org>
  */
 public interface NestedSetManager {
     /**
-     * Clears the NestedSetManager, removing all managed nodes.
+     * Clears the NestedSetManager, removing all managed nodes from the <tt>NestedSetManager</tt>.
+     * Any entities wrapped by such nodes are not detached from the underlying <tt>EntityManager</tt>.
      *
      * @return void
      */
@@ -44,6 +47,16 @@ public interface NestedSetManager {
      * @return The root node of the tree.
      */
     <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId);
+
+    /**
+     * Fetches the complete tree, returning the root node of the tree.
+     *
+     * @param <T>
+     * @param clazz
+     * @param rootId
+     * @return The root node of the tree.
+     */
+    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz);
 
     /**
      * Fetches a complete tree and returns the tree as a list.

@@ -7,15 +7,17 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset.impl;
+package org.code_factory.jpa.nestedset;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -31,35 +33,35 @@ import org.code_factory.jpa.nestedset.annotations.LeftColumn;
 import org.code_factory.jpa.nestedset.annotations.LevelColumn;
 import org.code_factory.jpa.nestedset.annotations.RightColumn;
 import org.code_factory.jpa.nestedset.annotations.RootColumn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * A NestedSetManagerImpl is used to read and manipulate the nested set tree structure of
- * a class that implements NodeInfo and where each instance thus has a position in a
- * nested set tree.
- *
  * @author Roman Borschel <roman@code-factory.org>
  */
 @NotThreadSafe
-public class NestedSetManagerImpl implements NestedSetManager {
-    private static Logger log = LoggerFactory.getLogger(NestedSetManagerImpl.class.getName());
-    private EntityManager em;
-    private Map<Key, Node<?>> nodes;
-    private Map<Class<?>, Configuration> configs;
+public class JpaNestedSetManager implements NestedSetManager {
+    //private static Logger log = LoggerFactory.getLogger(JpaNestedSetManager.class.getName());
+    private final EntityManager em;
+    private final Map<Key, Node<?>> nodes;
+    private final Map<Class<?>, Configuration> configs;
 
     @Inject
-    public NestedSetManagerImpl(EntityManager em) {
+    public JpaNestedSetManager(EntityManager em) {
         this.em = em;
         this.nodes = new HashMap<Key, Node<?>>();
         this.configs = new HashMap<Class<?>, Configuration>();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public EntityManager getEntityManager() {
         return this.em;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clear() {
         this.nodes.clear();
@@ -112,6 +114,11 @@ public class NestedSetManagerImpl implements NestedSetManager {
         return fetchTreeAsList(clazz, rootId).get(0);
     }
 
+    @Override
+    public <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz) {
+        return fetchTree(clazz, 0);
+    }
+
     /**
      * Establishes all parent/child/ancestor/descendant relationships of all the nodes in
      * the given list. As a result, invocations on the corresponding methods on these node
@@ -125,11 +132,11 @@ public class NestedSetManagerImpl implements NestedSetManager {
     private <T extends NodeInfo> void buildTree(List<Node<T>> treeList, int maxLevel) {
         Node<T> rootNode = treeList.get(0);
 
-        Stack<NodeImpl<T>> stack = new Stack<NodeImpl<T>>();
+        Stack<JpaNode<T>> stack = new Stack<JpaNode<T>>();
         int level = rootNode.getLevel();
 
         for (Node<T> n : treeList) {
-            NodeImpl<T> node = (NodeImpl<T>) n;
+            JpaNode<T> node = (JpaNode<T>) n;
 
             if (node.getLevel() < level) {
                 stack.pop();
@@ -137,7 +144,7 @@ public class NestedSetManagerImpl implements NestedSetManager {
             level = node.getLevel();
 
             if (node != rootNode) {
-                NodeImpl<T> parent = stack.peek();
+                JpaNode<T> parent = stack.peek();
                 // set parent
                 node.internalSetParent(parent);
                 // add child to parent
@@ -145,7 +152,7 @@ public class NestedSetManagerImpl implements NestedSetManager {
                 // set ancestors
                 node.internalSetAncestors(new ArrayList<Node<T>>(stack));
                 // add descendant to all ancestors
-                for (NodeImpl<T> anc : stack) {
+                for (JpaNode<T> anc : stack) {
                     anc.internalAddDescendant(node);
                 }
             }
@@ -176,13 +183,16 @@ public class NestedSetManagerImpl implements NestedSetManager {
     public <T extends NodeInfo> Node<T> getNode(T nodeInfo) {
         Key key = new Key(nodeInfo.getClass(), nodeInfo.getId());
         if (this.nodes.containsKey(key)) {
-            return (Node<T>) this.nodes.get(key);
+            @SuppressWarnings("unchecked")
+            Node<T> n = (Node<T>) this.nodes.get(key);
+            return n;
         }
-        Node<T> node = new NodeImpl<T>(nodeInfo, this);
+        Node<T> node = new JpaNode<T>(nodeInfo, this);
         if (!node.isValid()) {
             throw new IllegalArgumentException("The given NodeInfo instance has no position " +
                     "in a tree and is thus not yet a node.");
         }
+        System.out.println("PUTTING NODE");
         this.nodes.put(key, node);
 
         return node;
@@ -249,7 +259,7 @@ public class NestedSetManagerImpl implements NestedSetManager {
             if (node.getRootValue() == rootId) {
                 if (node.getLeftValue() >= minLeft && (maxLeft == 0 || node.getLeftValue() <= maxLeft)) {
                     node.setLeftValue(node.getLeftValue() + delta);
-                    ((NodeImpl<?>) node).invalidate();
+                    ((JpaNode<?>) node).invalidate();
                 }
             }
         }
@@ -268,7 +278,7 @@ public class NestedSetManagerImpl implements NestedSetManager {
             if (node.getRootValue() == rootId) {
                 if (node.getRightValue() >= minRight && (maxRight == 0 || node.getRightValue() <= maxRight)) {
                     node.setRightValue(node.getRightValue() + delta);
-                    ((NodeImpl<?>) node).invalidate();
+                    ((JpaNode<?>) node).invalidate();
                 }
             }
         }
@@ -287,9 +297,32 @@ public class NestedSetManagerImpl implements NestedSetManager {
             if (node.getRootValue() == rootId) {
                 if (node.getLeftValue() > left && node.getRightValue() < right) {
                     node.setLevel(node.getLevel() + delta);
-                    ((NodeImpl<?>) node).invalidate();
+                    ((JpaNode<?>) node).invalidate();
                 }
             }
+        }
+    }
+
+    void removeNodes(int left, int right, int rootId) {
+        System.out.println("REMOVING NODES: " + left + ", " + right + ", " + rootId);
+        Set<Key> removed = new HashSet<Key>();
+        for (Node<?> node : this.nodes.values()) {
+            if (node.getRootValue() == rootId) {
+                System.out.println("REMOVING...");
+                if (node.getLeftValue() >= left && node.getRightValue() <= right) {
+                    System.out.println("REALLY REMOVING..." + node.getId());
+                    removed.add(new Key(node.unwrap().getClass(), node.getId()));
+                    System.out.println("REMOVED: " + removed);
+                }
+            }
+        }
+        for (Key k : removed) {
+            Node<?> n = this.nodes.remove(k);
+            n.setLeftValue(0);
+            n.setRightValue(0);
+            n.setLevel(0);
+            n.setRootValue(0);
+            this.em.detach(n.unwrap());
         }
     }
 }

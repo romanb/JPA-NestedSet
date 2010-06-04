@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset.impl;
+package org.code_factory.jpa.nestedset;
 
 import net.jcip.annotations.Immutable;
 

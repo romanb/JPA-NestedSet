@@ -12,7 +12,6 @@ package org.code_factory.jpa.nestedset;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import org.code_factory.jpa.nestedset.impl.NestedSetManagerImpl;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -27,7 +26,7 @@ public class FunctionalNestedSetTest {
     protected EntityManager em;
     protected NestedSetManager nsm;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun=true)
     protected void createEntityManagerFactory() {
         try {
             emFactory = Persistence.createEntityManagerFactory("TestPU");
@@ -36,10 +35,10 @@ public class FunctionalNestedSetTest {
         }
     }
 
-    @BeforeMethod
+    @BeforeMethod(alwaysRun=true)
     protected void createEntityManager() {
         em = emFactory.createEntityManager();
-        this.nsm = new NestedSetManagerImpl(this.em);
+        this.nsm = new JpaNestedSetManager(this.em);
     }
 
     @AfterMethod

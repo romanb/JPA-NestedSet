@@ -65,13 +65,11 @@ public class Category implements NodeInfo {
 
     @Override
     public void setLeftValue(int value) {
-        System.out.println("Setting LEFT value to " + value + " on " + this.name);
         this.lft = value;
     }
 
     @Override
     public void setRightValue(int value) {
-        System.out.println("Setting RIGHT value to " + value + " on " + this.name);
         this.rgt = value;
     }
 

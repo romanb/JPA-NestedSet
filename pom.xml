@@ -37,7 +37,7 @@
   <repositories>
       <repository>
           <id>JBoss Repo</id>
-          <url>http://repository.jboss.com/maven2</url>
+          <url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
       </repository>
       <repository>
           <id>EclipseLink Repo</id>

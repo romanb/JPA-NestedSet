@@ -166,16 +166,16 @@ public class JpaNestedSetManager implements NestedSetManager {
      */
     @Override
     public <T extends NodeInfo> Node<T> createRoot(T root) {
-    	Configuration config = getConfig(root.getClass());
-    	
-    	int maximumRight;
-    	if (config.hasManyRoots()) {
-    		maximumRight = 0;
-    	} else {
-    		maximumRight = getMaximumRight(root.getClass());
-    	}
-    	root.setLeftValue(maximumRight + 1);
-		root.setRightValue(maximumRight + 2);
+        Configuration config = getConfig(root.getClass());
+
+        int maximumRight;
+        if (config.hasManyRoots()) {
+            maximumRight = 0;
+        } else {
+            maximumRight = getMaximumRight(root.getClass());
+        }
+        root.setLeftValue(maximumRight + 1);
+        root.setRightValue(maximumRight + 2);
         root.setLevel(0);
         em.persist(root);
         return getNode(root);

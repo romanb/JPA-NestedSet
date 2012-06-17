@@ -166,8 +166,16 @@ public class JpaNestedSetManager implements NestedSetManager {
      */
     @Override
     public <T extends NodeInfo> Node<T> createRoot(T root) {
-        root.setLeftValue(1);
-        root.setRightValue(2);
+        Configuration config = getConfig(root.getClass());
+
+        int maximumRight;
+        if (config.hasManyRoots()) {
+            maximumRight = 0;
+        } else {
+            maximumRight = getMaximumRight(root.getClass());
+        }
+        root.setLeftValue(maximumRight + 1);
+        root.setRightValue(maximumRight + 2);
         root.setLevel(0);
         em.persist(root);
         return getNode(root);
@@ -223,6 +231,20 @@ public class JpaNestedSetManager implements NestedSetManager {
         }
 
         return this.configs.get(clazz);
+    }
+    
+    int getMaximumRight(Class<? extends NodeInfo> clazz) {
+    	Configuration config = getConfig(clazz);
+    	CriteriaBuilder cb = em.getCriteriaBuilder();
+    	CriteriaQuery<? extends NodeInfo> cq = cb.createQuery(clazz);
+        Root<? extends NodeInfo> queryRoot = cq.from(clazz);
+        cq.orderBy(cb.desc(queryRoot.get(config.getRightFieldName())));
+        List<? extends NodeInfo>highestRows = em.createQuery(cq).setMaxResults(1).getResultList();
+        if (highestRows.isEmpty()) {
+        	return 0;
+        } else {
+        	return highestRows.get(0).getRightValue();
+        }
     }
 
     /**

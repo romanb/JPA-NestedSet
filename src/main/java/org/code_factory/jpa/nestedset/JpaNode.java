@@ -166,7 +166,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Determines if this node is equal to another node. 
+     * Determines if this node is equal to another node.
      *
      * @return bool
      */
@@ -234,7 +234,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     @Override public List<Node<T>> getDescendants() {
         return getDescendants(0);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -550,7 +550,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
 
         return nsm.getNode(nsm.getEntityManager().createQuery(cq).getSingleResult());
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -559,7 +559,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         if (this.ancestors != null) {
             return this.ancestors;
         }
-        
+
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         Predicate wherePredicate = cb.and(
@@ -651,7 +651,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         StringBuilder updateQuery = new StringBuilder();
         updateQuery.append("update ").append(node.getClass().getSimpleName()).append(" n")
                 .append(" set n.").append(levelFieldName).append(" = n.").append(levelFieldName).append(" + ?1")
-                .append("where n.").append(leftFieldName).append(" > ?2")
+                .append(" where n.").append(leftFieldName).append(" > ?2")
                 .append(" and n.").append(rightFieldName).append(" < ?3");
 
         if (rootIdFieldName != null) {
@@ -818,7 +818,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
 
     /**
      * Makes this node a root node. Only used in multiple-root trees.
-     * 
+     *
      * @param newRootId
      */
     public void makeRoot(int newRootId) {

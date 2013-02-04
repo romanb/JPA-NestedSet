@@ -19,7 +19,8 @@ class Configuration {
     private String rightFieldName;
     private String levelFieldName;
     private String rootIdFieldName;
-
+    private String entityName;
+    
     private boolean hasManyRoots = false;
 
     /**
@@ -87,4 +88,12 @@ class Configuration {
         return "[leftFieldName: " + this.leftFieldName + ", rightFieldName:" + this.rightFieldName
                 + ", levelFieldName: " + this.levelFieldName + ", rootIdFieldName:" + this.rootIdFieldName + "]";
     }
+
+	public String getEntityName() {
+		return entityName;
+	}
+
+	public void setEntityName(String tableName) {
+		this.entityName = tableName;
+	}
 }

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import javax.inject.Inject;
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -212,6 +213,11 @@ public class JpaNestedSetManager implements NestedSetManager {
     Configuration getConfig(Class<?> clazz) {
         if (!this.configs.containsKey(clazz)) {
             Configuration config = new Configuration();
+            
+            Entity entity = clazz.getAnnotation(Entity.class);
+        	String name = entity.name();
+        	config.setEntityName( (name != null && name.length()>0) ? name : clazz.getSimpleName());
+
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.getAnnotation(LeftColumn.class) != null) {
                     config.setLeftFieldName(field.getName());

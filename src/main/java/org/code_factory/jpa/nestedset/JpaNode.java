@@ -11,6 +11,8 @@ package org.code_factory.jpa.nestedset;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.persistence.Entity;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -401,13 +403,15 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     public void delete() {
         //TODO: Remove deleted nodes that are in-memory from JpaNestedSetManager.
         int oldRoot = getRootValue();
-        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
-        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
-        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
+        Configuration cfg = nsm.getConfig(this.type);
+        String rootIdFieldName = cfg.getRootIdFieldName();
+        String leftFieldName = cfg.getLeftFieldName();
+        String rightFieldName = cfg.getRightFieldName();
+        String entityName =  cfg.getEntityName();
 
         StringBuilder sb = new StringBuilder();
         sb.append("delete from " )
-                .append(node.getClass().getSimpleName()).append(" n")
+                .append(entityName).append(" n")
                 .append(" where n.").append(leftFieldName).append(">= ?1")
                 .append(" and n.").append(rightFieldName).append("<= ?2");
 
@@ -442,13 +446,15 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      * @param rootId The root/tree ID of the nodes to shift.
      */
     private void shiftRLValues(int first, int last, int delta, int rootId) {
-        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
-        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
-        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
-
+    	Configuration cfg = nsm.getConfig(this.type);
+        String rootIdFieldName = cfg.getRootIdFieldName();
+        String leftFieldName = cfg.getLeftFieldName();
+        String rightFieldName = cfg.getRightFieldName();
+        String entityName =  cfg.getEntityName();
+        
         // Shift left values
         StringBuilder sbLeft = new StringBuilder();
-        sbLeft.append("update ").append(node.getClass().getSimpleName()).append(" n")
+        sbLeft.append("update ").append(entityName).append(" n")
                 .append(" set n.").append(leftFieldName).append(" = n.").append(leftFieldName).append(" + ?1")
                 .append(" where n.").append(leftFieldName).append(" >= ?2");
 
@@ -474,7 +480,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
 
         // Shift right values
         StringBuilder sbRight = new StringBuilder();
-        sbRight.append("update ").append(node.getClass().getSimpleName()).append(" n")
+        sbRight.append("update ").append(entityName).append(" n")
                 .append(" set n.").append(rightFieldName).append(" = n.").append(rightFieldName).append(" + ?1")
                 .append(" where n.").append(rightFieldName).append(" >= ?2");
 
@@ -646,10 +652,11 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
         String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
         String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
+        String entityName =  nsm.getConfig(this.type).getEntityName();
 
         // update level for descendants
         StringBuilder updateQuery = new StringBuilder();
-        updateQuery.append("update ").append(node.getClass().getSimpleName()).append(" n")
+        updateQuery.append("update ").append(entityName).append(" n")
                 .append(" set n.").append(levelFieldName).append(" = n.").append(levelFieldName).append(" + ?1")
                 .append(" where n.").append(leftFieldName).append(" > ?2")
                 .append(" and n.").append(rightFieldName).append(" < ?3");
@@ -740,10 +747,13 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      * @param moveType
      */
     private void moveBetweenTrees(Node<T> dest, int newLeftValue, int moveType) {
-        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
-        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
-        String levelFieldName = nsm.getConfig(this.type).getLevelFieldName();
-        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
+
+    	Configuration cfg = nsm.getConfig(this.type);
+        String leftFieldName = cfg.getLeftFieldName();
+        String rightFieldName = cfg.getRightFieldName();
+        String levelFieldName = cfg.getLevelFieldName();
+        String rootIdFieldName = cfg.getRootIdFieldName();
+        String entityName =  cfg.getEntityName();
 
         // Move between trees: Detach from old tree & insert into new tree
         int newRoot = dest.getRootValue();
@@ -790,7 +800,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
 
         // Update lft/rgt/root/level for all descendants
         StringBuilder updateQuery = new StringBuilder();
-        updateQuery.append("update ").append(node.getClass().getSimpleName()).append(" n")
+        updateQuery.append("update ").append(entityName).append(" n")
                 .append(" set n.").append(leftFieldName).append(" = n.").append(leftFieldName).append(" + ?1")
                 .append(", n.").append(rightFieldName).append(" = n.").append(rightFieldName).append(" + ?2")
                 .append(", n.").append(levelFieldName).append(" = n.").append(levelFieldName).append(" + ?3")
@@ -826,11 +836,13 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
             return;
         }
 
-        String leftFieldName = nsm.getConfig(this.type).getLeftFieldName();
-        String rightFieldName = nsm.getConfig(this.type).getRightFieldName();
-        String levelFieldName = nsm.getConfig(this.type).getLevelFieldName();
-        String rootIdFieldName = nsm.getConfig(this.type).getRootIdFieldName();
-
+        Configuration cfg = nsm.getConfig(this.type);
+        String leftFieldName = cfg.getLeftFieldName();
+        String rightFieldName = cfg.getRightFieldName();
+        String levelFieldName = cfg.getLevelFieldName();
+        String rootIdFieldName = cfg.getRootIdFieldName();
+        String entityName =  cfg.getEntityName();
+        
         int oldRgt = getRightValue();
         int oldLft = getLeftValue();
         int oldRoot = getRootValue();
@@ -841,7 +853,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         int newRoot = newRootId;
 
         StringBuilder updateQuery = new StringBuilder();
-        updateQuery.append("update ").append(node.getClass().getSimpleName()).append(" n")
+        updateQuery.append("update ").append(entityName).append(" n")
                 .append(" set n.").append(leftFieldName).append(" = n.").append(leftFieldName).append(" + ?1")
                 .append(", n.").append(rightFieldName).append(" = n.").append(rightFieldName).append(" + ?2")
                 .append(", n.").append(levelFieldName).append(" = n.").append(levelFieldName).append(" - ?3")
@@ -908,4 +920,5 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     void internalSetAncestors(List<Node<T>> ancestors) {
         this.ancestors = ancestors;
     }
+    
 }

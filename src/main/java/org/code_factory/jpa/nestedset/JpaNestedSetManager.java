@@ -90,7 +90,7 @@ public class JpaNestedSetManager implements NestedSetManager {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<T> cq = cb.createQuery(clazz);
         Root<T> queryRoot = cq.from(clazz);
-        cq.where(cb.ge(queryRoot.get(config.getLeftFieldName()).as(Number.class), 1));
+        cq.where(cb.ge(queryRoot.<Number>get(config.getLeftFieldName()), 1));
         cq.orderBy(cb.asc(queryRoot.get(config.getLeftFieldName())));
         applyRootId(clazz, cq, rootId);
 

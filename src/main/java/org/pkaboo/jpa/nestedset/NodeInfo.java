@@ -10,8 +10,8 @@
 package org.pkaboo.jpa.nestedset;
 
 /**
- * A NodeInfo implementor carries information about its identity and position in
- * a nested set.
+ * A NodeInfo implementor carries information about the identity and position
+ * of a node in a nested set tree.
  */
 public interface NodeInfo {
     int getId();

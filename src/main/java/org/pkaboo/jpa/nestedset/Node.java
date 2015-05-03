@@ -66,7 +66,6 @@ public interface Node<T extends NodeInfo> extends NodeInfo {
     /**
      * Gets all ancestors of this node.
      *
-     * @param int depth The depth "upstairs".
      * @return The ancestors of the node.
      */
     List<Node<T>> getAncestors();
@@ -103,8 +102,6 @@ public interface Node<T extends NodeInfo> extends NodeInfo {
     T unwrap();
     /**
      * Deletes the node and all its descendants from the tree.
-     *
-     * @return void
      */
     void delete();
     /**

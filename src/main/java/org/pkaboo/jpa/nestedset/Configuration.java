@@ -7,12 +7,10 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 /**
  * A configuration for a class managed by a NestedSetManager.
- *
- * @author robo
  */
 class Configuration {
     private String leftFieldName;
@@ -20,7 +18,7 @@ class Configuration {
     private String levelFieldName;
     private String rootIdFieldName;
     private String entityName;
-    
+
     private boolean hasManyRoots = false;
 
     /**

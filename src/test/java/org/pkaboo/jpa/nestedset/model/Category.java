@@ -3,21 +3,18 @@
  * and open the template in the editor.
  */
 
-package org.code_factory.jpa.nestedset.model;
+package org.pkaboo.jpa.nestedset.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import org.code_factory.jpa.nestedset.NodeInfo;
-import org.code_factory.jpa.nestedset.annotations.LeftColumn;
-import org.code_factory.jpa.nestedset.annotations.LevelColumn;
-import org.code_factory.jpa.nestedset.annotations.RightColumn;
-import org.code_factory.jpa.nestedset.annotations.RootColumn;
+import org.pkaboo.jpa.nestedset.NodeInfo;
+import org.pkaboo.jpa.nestedset.annotations.LeftColumn;
+import org.pkaboo.jpa.nestedset.annotations.LevelColumn;
+import org.pkaboo.jpa.nestedset.annotations.RightColumn;
+import org.pkaboo.jpa.nestedset.annotations.RootColumn;
 
-/**
- * @author robo
- */
 @Entity
 public class Category implements NodeInfo {
     @Id @GeneratedValue

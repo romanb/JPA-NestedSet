@@ -7,14 +7,11 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
-import org.code_factory.jpa.nestedset.model.Category;
+import org.pkaboo.jpa.nestedset.model.Category;
 import org.testng.annotations.Test;
 
-/**
- * @author Roman Borschel <roman@code-factory.org>
- */
 public class MultiRootNodeTest extends FunctionalNestedSetTest {
 
     @Test
@@ -85,5 +82,5 @@ public class MultiRootNodeTest extends FunctionalNestedSetTest {
 
     }
 
-    
+
 }

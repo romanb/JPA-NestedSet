@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -27,17 +27,13 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import net.jcip.annotations.NotThreadSafe;
-import org.code_factory.jpa.nestedset.annotations.LeftColumn;
-import org.code_factory.jpa.nestedset.annotations.LevelColumn;
-import org.code_factory.jpa.nestedset.annotations.RightColumn;
-import org.code_factory.jpa.nestedset.annotations.RootColumn;
+import org.pkaboo.jpa.nestedset.annotations.LeftColumn;
+import org.pkaboo.jpa.nestedset.annotations.LevelColumn;
+import org.pkaboo.jpa.nestedset.annotations.RightColumn;
+import org.pkaboo.jpa.nestedset.annotations.RootColumn;
 
-/**
- * @author Roman Borschel <roman@code-factory.org>
- */
 @NotThreadSafe
 public class JpaNestedSetManager implements NestedSetManager {
-    //private static Logger log = LoggerFactory.getLogger(JpaNestedSetManager.class.getName());
     private final EntityManager em;
     private final Map<Key, Node<?>> nodes;
     private final Map<Class<?>, Configuration> configs;

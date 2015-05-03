@@ -7,18 +7,15 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 import java.util.Iterator;
 import java.util.List;
-import org.code_factory.jpa.nestedset.model.Category;
+import org.pkaboo.jpa.nestedset.model.Category;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-/**
- * @author Roman Borschel <roman@code-factory.org>
- */
 public class BasicTest extends FunctionalNestedSetTest {
     private Category progCat;
     private Category javaCat;
@@ -104,7 +101,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         this.createBasicTree();
 
         Category progCat2 = em.find(Category.class, this.progCat.getId());
-        
+
         Node<Category> progCatNode = nsm.getNode(progCat2);
 
         assert 1 == progCatNode.getLeftValue();
@@ -123,7 +120,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert false == child2.hasChildren();
         assert 0 == child1.getChildren().size();
         assert 0 == child2.getChildren().size();
-        
+
         assert progCat2 == child1.getParent().unwrap();
         assert progCat2 == child2.getParent().unwrap();
 
@@ -181,7 +178,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         this.createBasicTree();
 
         em.getTransaction().begin();
-        
+
         Node<Category> progNode = this.nsm.getNode(em.find(Category.class, this.progCat.getId()));
 
         // Create a new WPF category, placing it under "Programming" first.
@@ -254,7 +251,7 @@ public class BasicTest extends FunctionalNestedSetTest {
     @Test
     public void testDeleteNode() {
         this.createBasicTree();
-        
+
         em.getTransaction().begin();
         // fetch the tree
         Node<Category> progNode = nsm.fetchTree(Category.class, this.progCat.getRootValue());
@@ -266,7 +263,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         Category netCat2 = em.find(Category.class, this.netCat.getId());
         Node<Category> netNode = nsm.getNode(netCat2);
         netNode.delete();
-        
+
         // check in-memory state of tree
         assert 1 == progNode.getLeftValue();
         assert 4 == progNode.getRightValue();

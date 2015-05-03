@@ -3,7 +3,7 @@
   <persistence-unit name="TestPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <!--<exclude-unlisted-classes>false</exclude-unlisted-classes>-->
-    <class>org.code_factory.jpa.nestedset.model.Category</class>
+    <class>org.pkaboo.jpa.nestedset.model.Category</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:hsqldb:mem:unit-testing-jpa"/>
       <property name="javax.persistence.jdbc.password" value=""/>

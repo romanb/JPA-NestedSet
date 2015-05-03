@@ -7,13 +7,10 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 import net.jcip.annotations.Immutable;
 
-/**
- * @author Roman Borschel <roman@code-factory.org>
- */
 @Immutable
 class Key {
     private final Class<?> clazz;

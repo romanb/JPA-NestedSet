@@ -7,13 +7,11 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 /**
  * A NodeInfo implementor carries information about its identity and position in
  * a nested set.
- *
- * @author Roman Borschel <roman@code-factory.org>
  */
 public interface NodeInfo {
     int getId();

@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,6 @@ import net.jcip.annotations.NotThreadSafe;
  * of a node in a nested set tree.
  *
  * @param <T extends NodeInfo> The wrapped entity type.
- * @author Roman Borschel <roman@code-factory.org>
  */
 @NotThreadSafe
 class JpaNode<T extends NodeInfo> implements Node<T> {
@@ -451,7 +450,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         String leftFieldName = cfg.getLeftFieldName();
         String rightFieldName = cfg.getRightFieldName();
         String entityName =  cfg.getEntityName();
-        
+
         // Shift left values
         StringBuilder sbLeft = new StringBuilder();
         sbLeft.append("update ").append(entityName).append(" n")
@@ -842,7 +841,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         String levelFieldName = cfg.getLevelFieldName();
         String rootIdFieldName = cfg.getRootIdFieldName();
         String entityName =  cfg.getEntityName();
-        
+
         int oldRgt = getRightValue();
         int oldLft = getLeftValue();
         int oldRoot = getRootValue();
@@ -920,5 +919,5 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     void internalSetAncestors(List<Node<T>> ancestors) {
         this.ancestors = ancestors;
     }
-    
+
 }

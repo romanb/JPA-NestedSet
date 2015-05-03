@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.html
  */
 
-package org.code_factory.jpa.nestedset;
+package org.pkaboo.jpa.nestedset;
 
 import java.util.List;
 
@@ -15,7 +15,6 @@ import java.util.List;
  * A node in a nested set tree.
  *
  * @param <T extends NodeInfo> The wrapped entity type.
- * @author Roman Borschel <roman@code-factory.org>
  */
 public interface Node<T extends NodeInfo> extends NodeInfo {
     /**

@@ -111,6 +111,12 @@ public interface Node<T extends NodeInfo> extends NodeInfo {
      */
     boolean isRoot();
     /**
+     * Turn this node into a root node. Only used in multiple-root trees.
+     *
+     * @param newRootId
+     */
+    void makeRoot(int newRootId);
+    /**
      * Tests if the node has a parent. If it does not have a parent, it is a root node.
      *
      * @return TRUE if this node has a parent node, FALSE otherwise.

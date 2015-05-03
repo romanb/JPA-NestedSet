@@ -130,33 +130,33 @@ public class JpaNestedSetManager implements NestedSetManager {
     private <T extends NodeInfo> void buildTree(List<Node<T>> treeList, int maxLevel) {
         Node<T> rootNode = treeList.get(0);
 
-        Stack<JpaNode<T>> stack = new Stack<JpaNode<T>>();
+        Stack<JpaNode<T>> ancestors = new Stack<JpaNode<T>>();
         int level = rootNode.getLevel();
 
         for (Node<T> n : treeList) {
             JpaNode<T> node = (JpaNode<T>) n;
 
-            while (node.getLevelValue() < level && stack.size() != 1) {
-                stack.pop();
+            for (int i = level - node.getLevel(); i > 0; --i) {
+                ancestors.pop();
             }
             level = node.getLevel();
 
             if (node != rootNode) {
-                JpaNode<T> parent = stack.peek();
+                JpaNode<T> parent = ancestors.peek();
                 // set parent
                 node.internalSetParent(parent);
                 // add child to parent
                 parent.internalAddChild(node);
                 // set ancestors
-                node.internalSetAncestors(new ArrayList<Node<T>>(stack));
+                node.internalSetAncestors(new ArrayList<Node<T>>(ancestors));
                 // add descendant to all ancestors
-                for (JpaNode<T> anc : stack) {
+                for (JpaNode<T> anc : ancestors) {
                     anc.internalAddDescendant(node);
                 }
             }
 
             if (node.hasChildren() && (maxLevel == 0 || maxLevel > level)) {
-                stack.push(node);
+                ancestors.push(node);
             }
 
         }
@@ -181,7 +181,7 @@ public class JpaNestedSetManager implements NestedSetManager {
         em.persist(root);
         return getNode(root);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -213,7 +213,7 @@ public class JpaNestedSetManager implements NestedSetManager {
     Configuration getConfig(Class<?> clazz) {
         if (!this.configs.containsKey(clazz)) {
             Configuration config = new Configuration();
-            
+
             Entity entity = clazz.getAnnotation(Entity.class);
         	String name = entity.name();
         	config.setEntityName( (name != null && name.length()>0) ? name : clazz.getSimpleName());
@@ -238,7 +238,7 @@ public class JpaNestedSetManager implements NestedSetManager {
 
         return this.configs.get(clazz);
     }
-    
+
     int getMaximumRight(Class<? extends NodeInfo> clazz) {
     	Configuration config = getConfig(clazz);
     	CriteriaBuilder cb = em.getCriteriaBuilder();

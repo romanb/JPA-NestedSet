@@ -204,7 +204,7 @@ public class BasicTest extends FunctionalNestedSetTest {
                          WPF
         */
         Node<Category> netNode = this.nsm.getNode(em.find(Category.class, this.netCat.getId()));
-        wpfNode.moveAsLastChildOf(netNode);
+        wpfNode.moveAsFirstChildOf(netNode);
         assert 4 == netNode.getLeftValue();
         assert 7 == netNode.getRightValue();
         assert 5 == wpfNode.getLeftValue();
@@ -246,6 +246,9 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert 10 == progNode.getRightValue();
 
         em.getTransaction().commit();
+
+        em.refresh(wpfNode.unwrap());
+        assert 2 == wpfNode.getLevel();
     }
 
     @Test

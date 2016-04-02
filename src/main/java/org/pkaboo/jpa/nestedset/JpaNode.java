@@ -435,7 +435,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     }
 
     /**
-     * Adds 'delta' to all Left and right values that are >= 'first' and
+     * Adds 'delta' to all left and right values that are >= 'first' and
      * <= 'last'. 'delta' can also be negative. If 'last' is 0 it is skipped and there is
      * no upper bound.
      *
@@ -449,7 +449,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         String rootIdFieldName = cfg.getRootIdFieldName();
         String leftFieldName = cfg.getLeftFieldName();
         String rightFieldName = cfg.getRightFieldName();
-        String entityName =  cfg.getEntityName();
+        String entityName = cfg.getEntityName();
 
         // Shift left values
         StringBuilder sbLeft = new StringBuilder();

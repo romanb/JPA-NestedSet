@@ -1,6 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * LICENSE
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this package in the file MIT.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.opensource.org/licenses/mit-license.html
  */
 
 package org.pkaboo.jpa.nestedset.model;

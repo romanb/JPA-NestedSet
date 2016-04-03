@@ -14,18 +14,19 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 /**
- * A <tt>NestedSetManager</tt> is used to read and manipulate the nested set tree structure of
- * classes that implement {@link NodeInfo}.
+ * A <tt>NestedSetManager</tt> is used to read and manipulate the nested set
+ * tree structure intrinsic to classes that implement {@link NodeInfo}.
  */
 public interface NestedSetManager {
     /**
-     * Clears the NestedSetManager, removing all managed nodes from the <tt>NestedSetManager</tt>.
-     * Any entities wrapped by such nodes are not detached from the underlying <tt>EntityManager</tt>.
+     * Clears the NestedSetManager, removing all managed nodes from the
+     * <tt>NestedSetManager</tt>. Any entities wrapped by such nodes are
+     * not detached from the underlying {@link EntityManager}.
      */
-    void clear();
+    // void clear();
 
     /**
-     * Creates a root node for the given NodeInfo instance.
+     * Create a root node for the given NodeInfo instance.
      *
      * @param <T>
      * @param root
@@ -34,52 +35,33 @@ public interface NestedSetManager {
     <T extends NodeInfo> Node<T> createRoot(T root);
 
     /**
-     * Fetches a complete tree, returning the root node of the tree.
-     *
-     * @param <T>
-     * @param clazz
-     * @param rootId
-     * @return The root node of the tree.
-     */
-    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId);
-
-    /**
-     * Fetches the complete tree, returning the root node of the tree.
-     *
-     * @param <T>
-     * @param clazz
-     * @return The root node of the tree.
-     */
-    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz);
-
-    /**
-     * Fetches a complete tree and returns the tree as a list.
+     * List all nodes of a tree, in ascending order of {@link NodeInfo#getLeftValue}.
      *
      * @param <T>
      * @param clazz
      * @return The tree in form of a list, starting with the root node.
      */
-    <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz);
+    <T extends NodeInfo> List<Node<T>> listNodes(Class<T> clazz);
 
     /**
-     * Fetches a complete tree and returns the tree as a list.
+     * List all nodes of a tree, in ascending order of {@link NodeInfo#getLeftValue}.
      *
      * @param <T>
      * @param clazz
-     * @param rootId
+     * @param rootId The tree ID.
      * @return The tree in form of a list, starting with the root node.
      */
-    <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId);
+    <T extends NodeInfo> List<Node<T>> listNodes(Class<T> clazz, int rootId);
 
     /**
-     * Gets the EntityManager used by this NestedSetManager.
+     * Get the EntityManager used by this NestedSetManager.
      *
      * @return The EntityManager.
      */
     EntityManager getEntityManager();
 
     /**
-     * Gets the node that represents the given NodeInfo instance in the tree.
+     * Get the node that represents the given NodeInfo instance in the tree.
      *
      * @param <T>
      * @param nodeInfo
@@ -90,7 +72,7 @@ public interface NestedSetManager {
     /**
      * Gets a collection of all nodes currently managed by the NestedSetManager.
      *
-     * @return The collection of nodes.
+     * @return The collection of managed nodes.
      */
-    Collection<Node<?>> getNodes();
+    // Collection<Node<?>> getManagedNodes();
 }

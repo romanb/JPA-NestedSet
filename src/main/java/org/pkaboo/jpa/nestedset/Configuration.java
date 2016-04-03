@@ -9,9 +9,6 @@
 
 package org.pkaboo.jpa.nestedset;
 
-/**
- * A configuration for a class managed by a NestedSetManager.
- */
 class Configuration {
     private String leftFieldName;
     private String rightFieldName;
@@ -21,58 +18,34 @@ class Configuration {
 
     private boolean hasManyRoots = false;
 
-    /**
-     * @return the leftFieldName
-     */
     public String getLeftFieldName() {
         return leftFieldName;
     }
 
-    /**
-     * @param leftFieldName the leftFieldName to set
-     */
     public void setLeftFieldName(String leftFieldName) {
         this.leftFieldName = leftFieldName;
     }
 
-    /**
-     * @return the rightFieldName
-     */
     public String getRightFieldName() {
         return rightFieldName;
     }
 
-    /**
-     * @param rightFieldName the rightFieldName to set
-     */
     public void setRightFieldName(String rightFieldName) {
         this.rightFieldName = rightFieldName;
     }
 
-    /**
-     * @return the levelFieldName
-     */
     public String getLevelFieldName() {
         return levelFieldName;
     }
 
-    /**
-     * @param levelFieldName the levelFieldName to set
-     */
     public void setLevelFieldName(String levelFieldName) {
         this.levelFieldName = levelFieldName;
     }
 
-    /**
-     * @return the rootIdFieldName
-     */
     public String getRootIdFieldName() {
         return rootIdFieldName;
     }
 
-    /**
-     * @param rootIdFieldName the rootIdFieldName to set
-     */
     public void setRootIdFieldName(String rootIdFieldName) {
         this.rootIdFieldName = rootIdFieldName;
         this.hasManyRoots = true;
@@ -83,8 +56,11 @@ class Configuration {
     }
 
     @Override public String toString() {
-        return "[leftFieldName: " + this.leftFieldName + ", rightFieldName:" + this.rightFieldName
-                + ", levelFieldName: " + this.levelFieldName + ", rootIdFieldName:" + this.rootIdFieldName + "]";
+        return "[leftFieldName: " + this.leftFieldName
+            + ", rightFieldName:" + this.rightFieldName
+            + ", levelFieldName: " + this.levelFieldName
+            + ", rootIdFieldName:" + this.rootIdFieldName
+            + "]";
     }
 
 	public String getEntityName() {

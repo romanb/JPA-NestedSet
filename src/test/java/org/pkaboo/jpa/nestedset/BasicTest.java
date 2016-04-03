@@ -11,6 +11,7 @@ package org.pkaboo.jpa.nestedset;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.pkaboo.jpa.nestedset.model.Category;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -48,15 +49,16 @@ public class BasicTest extends FunctionalNestedSetTest {
         this.netCat.setName(".NET");
 
         em.getTransaction().begin();
-        Node<Category> rootNode = nsm.createRoot(this.progCat);
-        rootNode.addChild(this.javaCat);
-        rootNode.addChild(this.netCat);
+        Node<Category> root = nsm.createRoot(this.progCat);
+        root.addChild(this.javaCat);
+        root.addChild(this.netCat);
         em.getTransaction().commit();
-        em.clear();
         nsm.clear();
+        em.clear();
     }
 
-    @Test public void testCreateRoot() {
+    @Test
+    public void testCreateRoot() {
         Category cat = new Category();
         cat.setName("Java");
 
@@ -73,12 +75,13 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert true == nsm.getNode(cat2).isRoot();
     }
 
-    @Test public void testFetchTree() {
+    @Test
+    public void testlistNodes() {
         this.createBasicTree();
 
-        List<Node<Category>> tree = nsm.fetchTreeAsList(Category.class);
-        assert tree.size() == 3;
-        Iterator<Node<Category>> iter = tree.iterator();
+        List<Node<Category>> nodes = nsm.listNodes(Category.class);
+        assert nodes.size() == 3;
+        Iterator<Node<Category>> iter = nodes.iterator();
         for (int i = 0; i < 3; i++) {
             Node node = iter.next();
             if (i == 0) {
@@ -97,7 +100,8 @@ public class BasicTest extends FunctionalNestedSetTest {
         }
     }
 
-    @Test public void testBasicTreeNavigation() {
+    @Test
+    public void testBasicTreeNavigation() {
         this.createBasicTree();
 
         Category progCat2 = em.find(Category.class, this.progCat.getId());
@@ -126,10 +130,11 @@ public class BasicTest extends FunctionalNestedSetTest {
 
     }
 
-    @Test public void testAddingNodesToTree() {
+    @Test
+    public void testAddingNodesToTree() {
         this.createBasicTree();
 
-        assert 0 == this.nsm.getNodes().size();
+        assert 0 == this.nsm.getManagedNodes().size();
         Node<Category> root = this.nsm.getNode(em.find(Category.class, this.progCat.getId()));
 
         // Assert basic tree state, a Programming category with 2 child categories.
@@ -138,7 +143,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert 2 == root.getChildren().size();
         assert 2 == root.getChildren().size();
 
-        assert 3 == this.nsm.getNodes().size();
+        assert 3 == this.nsm.getManagedNodes().size();
 
         // Add PHP category under Programming
         em.getTransaction().begin();
@@ -168,13 +173,11 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert 5 == javaNode.getRightValue();
         assert 10 == root.getRightValue();
 
-        assert 5 == this.nsm.getNodes().size();
+        assert 5 == this.nsm.getManagedNodes().size();
     }
 
-    /**
-     * Tests creating new nodes and moving them around in a tree.
-     */
-    @Test public void testMovingNodes() {
+    @Test
+    public void testMovingNodes() {
         this.createBasicTree();
 
         em.getTransaction().begin();
@@ -257,7 +260,7 @@ public class BasicTest extends FunctionalNestedSetTest {
 
         em.getTransaction().begin();
         // fetch the tree
-        Node<Category> progNode = nsm.fetchTree(Category.class, this.progCat.getRootValue());
+        Node<Category> progNode = nsm.listNodes(Category.class, this.progCat.getRootValue()).get(0);
         assertEquals(progNode.getChildren().size(), 2);
         assert 1 == progNode.getLeftValue();
         assert 6 == progNode.getRightValue();
@@ -279,5 +282,136 @@ public class BasicTest extends FunctionalNestedSetTest {
         } catch (IllegalArgumentException expected) {}
 
         em.getTransaction().commit();
+    }
+
+    @Test
+    public void testTreeView() {
+        // Create tree
+        /*
+                   A
+                  / \
+                 B   C
+                /  / | \
+               D  E  F  G
+               |     |
+               H     I
+                    / \
+                   J   K
+        */
+
+        Category catA = new Category();
+        catA.setName("A");
+
+        Category catB = new Category();
+        catB.setName("B");
+
+        Category catC = new Category();
+        catC.setName("C");
+
+        Category catD = new Category();
+        catD.setName("D");
+
+        Category catE = new Category();
+        catE.setName("E");
+
+        Category catF = new Category();
+        catF.setName("F");
+
+        Category catG = new Category();
+        catG.setName("G");
+
+        Category catH = new Category();
+        catH.setName("H");
+
+        Category catI = new Category();
+        catI.setName("I");
+
+        Category catJ = new Category();
+        catJ.setName("J");
+
+        Category catK = new Category();
+        catK.setName("K");
+
+        em.getTransaction().begin();
+        Node<Category> root = nsm.createRoot(catA);
+        // Level 1
+        root.addChild(catB);
+        root.addChild(catC);
+        // Level 2
+        nsm.getNode(catB).addChild(catD);
+        nsm.getNode(catC).addChild(catE);
+        nsm.getNode(catC).addChild(catF);
+        nsm.getNode(catC).addChild(catG);
+        // Level 3
+        nsm.getNode(catD).addChild(catH);
+        nsm.getNode(catF).addChild(catI);
+        // Level 4
+        nsm.getNode(catI).addChild(catJ);
+        nsm.getNode(catI).addChild(catK);
+
+        em.getTransaction().commit();
+
+        // Test tree
+        em.getTransaction().begin();
+        List<Category> nodes = nsm.listNodes(Category.class, 0).stream()
+                .map(n -> n.unwrap())
+                .collect(Collectors.toList());
+        em.getTransaction().commit();
+        // No database operations from here on.
+        closeEntityManager();
+
+        TreeView<Category> rootView = TreeView.build(nodes);
+
+        // Check root
+        assert catA == rootView.node;
+
+        // Check level 1
+        List<TreeView<Category>> childrenA = rootView.getChildren();
+        assert 2 == childrenA.size();
+        TreeView<Category> viewB = childrenA.get(0);
+        TreeView<Category> viewC = childrenA.get(1);
+        assert catB == viewB.node;
+        assert catC == viewC.node;
+        assert rootView == viewB.getParent();
+        assert rootView == viewC.getParent();
+
+        // Check level 2
+        List<TreeView<Category>> childrenB = viewB.getChildren();
+        List<TreeView<Category>> childrenC = viewC.getChildren();
+        assert 1 == childrenB.size();
+        assert 3 == childrenC.size();
+        TreeView<Category> viewD = childrenB.get(0);
+        TreeView<Category> viewE = childrenC.get(0);
+        TreeView<Category> viewF = childrenC.get(1);
+        TreeView<Category> viewG = childrenC.get(2);
+        assert catD == viewD.node;
+        assert catE == viewE.node;
+        assert catF == viewF.node;
+        assert catG == viewG.node;
+
+        // Check level 3
+        List<TreeView<Category>> childrenD = viewD.getChildren();
+        List<TreeView<Category>> childrenE = viewE.getChildren();
+        List<TreeView<Category>> childrenF = viewF.getChildren();
+        List<TreeView<Category>> childrenG = viewG.getChildren();
+        assert 1 == childrenD.size();
+        assert 0 == childrenE.size();
+        assert 1 == childrenF.size();
+        assert 0 == childrenG.size();
+        TreeView<Category> viewH = childrenD.get(0);
+        TreeView<Category> viewI = childrenF.get(0);
+        assert catH == viewH.node;
+        assert catI == viewI.node;
+
+        // Check level 4
+        List<TreeView<Category>> childrenH = viewH.getChildren();
+        List<TreeView<Category>> childrenI = viewI.getChildren();
+        assert 0 == childrenH.size();
+        assert 2 == childrenI.size();
+        TreeView<Category> viewJ = childrenI.get(0);
+        TreeView<Category> viewK = childrenI.get(1);
+        assert catJ == viewJ.node;
+        assert catK == viewK.node;
+
     }
 }

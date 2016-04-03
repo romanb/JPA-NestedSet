@@ -20,7 +20,7 @@ import org.testng.annotations.BeforeMethod;
 public class FunctionalNestedSetTest {
     protected EntityManagerFactory emFactory;
     protected EntityManager em;
-    protected NestedSetManager nsm;
+    protected JpaNestedSetManager nsm;
 
     @BeforeClass(alwaysRun=true)
     protected void createEntityManagerFactory() {
@@ -44,6 +44,7 @@ public class FunctionalNestedSetTest {
             em.createQuery("delete from Category").executeUpdate();
             em.getTransaction().commit();
             em.close();
+            em = null;
         }
         this.nsm = null;
     }
@@ -65,7 +66,7 @@ public class FunctionalNestedSetTest {
     }
 
     protected void printNode(Node<?> node) {
-        for (int i=0; i<node.getLevel(); i++) {
+        for (int i = 0; i < node.getLevel(); ++i) {
             System.out.print("--");
         }
         System.out.println(node.toString());

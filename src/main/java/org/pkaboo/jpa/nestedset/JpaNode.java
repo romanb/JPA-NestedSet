@@ -43,15 +43,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     /** The JpaNestedSetManager that manages this node. */
     private final JpaNestedSetManager nsm;
 
-    /* "Caches" of the tree state reachable from this node. These are cleared whenever the
-     *  node is rendered invalid due to tree modifications.
-     */
-    private List<Node<T>> children;
-    private Node<T> parent;
-    private List<Node<T>> ancestors;
-    private List<Node<T>> descendants;
-    private int descendantDepth = 0;
-
     @SuppressWarnings("unchecked")
     public JpaNode(T node, JpaNestedSetManager nsm) {
         this.node = node;
@@ -132,15 +123,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return node != null && node.getRightValue() > node.getLeftValue();
     }
 
-    /*
-    public void setBaseQuery(CriteriaQuery<T> cq) {
-        // The first root must be of the wrapped node type.
-        this.queryRoot = (Root<T>) cq.getRoots().iterator().next();
-        this.baseQuery = cq;
-    }
-    */
-
-    /* public */ private CriteriaQuery<T> getBaseQuery() {
+    private CriteriaQuery<T> getBaseQuery() {
         if (this.baseQuery == null) {
             this.baseQuery = nsm.getEntityManager().getCriteriaBuilder().createQuery(type);
             this.queryRoot = this.baseQuery.from(type);
@@ -148,34 +131,13 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return this.baseQuery;
     }
 
-    /**
-     * Gets the number of children (direct descendants) of this node.
-     *
-     * @return The number of children of this node.
-     */
     public int getNumberOfChildren() {
         return getChildren().size();
     }
 
-    /**
-     * Gets the number of descendants (children and their children etc.) of this node.
-     *
-     * @return The number of descendants of this node.
-     */
     public int getNumberOfDescendants() {
         return (this.getRightValue() - this.getLeftValue() - 1) / 2;
     }
-
-    /**
-     * Determines if this node is equal to another node.
-     *
-     * @return bool
-     */
-    /*public boolean isEqualTo(Node<T> node) {
-        return ((this.getLeftValue() == node.getLeftValue()) &&
-                (this.getRightValue() == node.getRightValue()) &&
-                (this.getRootValue() == node.getRootValue()));
-    }*/
 
     /**
      * {@inheritDoc}
@@ -187,13 +149,9 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
 
     /**
      * {@inheritDoc}
-     * @todo Better return an unmodifiable list instead?
      */
     @Override
     public List<Node<T>> getChildren() {
-        if (this.children != null) {
-            return this.children;
-        }
         return getDescendants(1);
     }
 
@@ -204,9 +162,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     public Node<T> getParent() {
         if (isRoot()) {
             return null;
-        }
-        if (this.parent != null) {
-            return this.parent;
         }
 
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
@@ -224,9 +179,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
 
         List<T> result = nsm.getEntityManager().createQuery(cq).getResultList();
 
-        this.parent = nsm.getNode(result.get(0));
-
-        return this.parent;
+        return nsm.getNode(result.get(0));
     }
 
     /**
@@ -240,11 +193,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      * {@inheritDoc}
      */
     @Override public List<Node<T>> getDescendants(int depth) {
-        if (this.descendants != null && (depth == 0 && this.descendantDepth == 0 || depth <= this.descendantDepth)) {
-            return this.descendants;
-        }
-
-        //TODO: Fill this.children here also?
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         Predicate wherePredicate = cb.and(
@@ -275,14 +223,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
             nodes.add(nsm.getNode(n));
         }
 
-        this.descendants = nodes;
-        this.descendantDepth = depth;
-
-        /*if (this.descendants.size() > 0) {
-            this.nsm.buildTree(this.descendants, depth);
-        }*/
-
-        return this.descendants;
+        return nodes;
     }
 
     /**
@@ -307,11 +248,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return this.nsm.getNode(child);
     }
 
-    /**
-     * Inserts this node as the previous sibling of the given node.
-     *
-     * @return void
-     */
     private void insertAsPrevSiblingOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot add node as child of itself.");
@@ -329,11 +265,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         nsm.getEntityManager().persist(this.node);
     }
 
-    /**
-     * Inserts this node as the next sibling of the given node.
-     *
-     * @return void
-     */
     private void insertAsNextSiblingOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot add node as child of itself.");
@@ -351,11 +282,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         nsm.getEntityManager().persist(this.node);
     }
 
-    /**
-     * Inserts this node as the last child of the given node.
-     *
-     * @return void
-     */
     private void insertAsLastChildOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot add node as child of itself.");
@@ -373,11 +299,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         nsm.getEntityManager().persist(this.node);
     }
 
-    /**
-     * Inserts this node as the first child of the given node.
-     *
-     * @return void
-     */
     private void insertAsFirstChildOf(Node<T> dest) {
         if (dest == this.node) {
             throw new IllegalArgumentException("Cannot add node as child of itself.");
@@ -400,7 +321,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      */
     @Override
     public void delete() {
-        //TODO: Remove deleted nodes that are in-memory from JpaNestedSetManager.
         int oldRoot = getRootValue();
         Configuration cfg = nsm.getConfig(this.type);
         String rootIdFieldName = cfg.getRootIdFieldName();
@@ -511,13 +431,8 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return this.node;
     }
 
-    /**
-     * Determines if the node is a leaf node.
-     *
-     * @return TRUE if the node is a leaf, FALSE otherwise.
-     */
     public boolean isLeaf() {
-        return (getRightValue() - getLeftValue()) == 1;
+        return !hasChildren();
     }
 
     /**
@@ -525,10 +440,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      */
     @Override
     public Node<T> getFirstChild() {
-        if (this.children != null) {
-            return this.children.get(0);
-        }
-
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         cq.where(cb.equal(queryRoot.get(nsm.getConfig(this.type).getLeftFieldName()), getLeftValue() + 1));
@@ -543,10 +454,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      */
     @Override
     public Node<T> getLastChild() {
-        if (this.children != null) {
-            return this.children.get(this.children.size() - 1);
-        }
-
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         cq.where(cb.equal(queryRoot.get(nsm.getConfig(this.type).getRightFieldName()), getRightValue() - 1));
@@ -561,10 +468,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
      */
     @Override
     public List<Node<T>> getAncestors() {
-        if (this.ancestors != null) {
-            return this.ancestors;
-        }
-
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
         Predicate wherePredicate = cb.and(
@@ -583,9 +486,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
             nodes.add(nsm.getNode(n));
         }
 
-        this.ancestors = nodes;
-
-        return this.ancestors;
+        return nodes;
     }
 
     /**
@@ -752,7 +653,7 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         String rightFieldName = cfg.getRightFieldName();
         String levelFieldName = cfg.getLevelFieldName();
         String rootIdFieldName = cfg.getRootIdFieldName();
-        String entityName =  cfg.getEntityName();
+        String entityName = cfg.getEntityName();
 
         // Move between trees: Detach from old tree & insert into new tree
         int newRoot = dest.getRootValue();
@@ -788,7 +689,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
                 throw new IllegalArgumentException("Unknown move operation: " + moveType);
         }
 
-        //int diff = oldRgt - oldLft;
         setRightValue(getLeftValue() + (oldRgt - oldLft));
 
         int newLevel = getLevel();
@@ -882,42 +782,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         setRightValue(oldRgt - oldLft + 1);
         setRootValue(newRootId);
         setLevel(0);
-    }
-
-    //
-    // Internal tree management methods used for preconstructing and invalidating the parts
-    // of a tree reachable directly from this node.
-    //
-
-    void invalidate() {
-        // Clear all local caches of other nodes, so that they're re-evaluated.
-        this.children = null;
-        this.parent = null;
-        this.ancestors = null;
-        this.descendants = null;
-        this.descendantDepth = 0;
-    }
-
-    void internalAddChild(Node<T> child) {
-        if (this.children == null) {
-            this.children = new ArrayList<Node<T>>();
-        }
-        this.children.add(child);
-    }
-
-    void internalSetParent(Node<T> parent) {
-        this.parent = parent;
-    }
-
-    void internalAddDescendant(Node<T> descendant) {
-        if (this.descendants == null) {
-            this.descendants = new ArrayList<Node<T>>();
-        }
-        this.descendants.add(descendant);
-    }
-
-    void internalSetAncestors(List<Node<T>> ancestors) {
-        this.ancestors = ancestors;
     }
 
 }

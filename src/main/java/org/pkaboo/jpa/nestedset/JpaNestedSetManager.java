@@ -32,6 +32,7 @@ import org.pkaboo.jpa.nestedset.annotations.LevelColumn;
 import org.pkaboo.jpa.nestedset.annotations.RightColumn;
 import org.pkaboo.jpa.nestedset.annotations.RootColumn;
 
+/** The default implementation of a JPA {@link NestedSetManager}. */
 @NotThreadSafe
 public class JpaNestedSetManager implements NestedSetManager {
     private final EntityManager em;
@@ -56,7 +57,7 @@ public class JpaNestedSetManager implements NestedSetManager {
     /**
      * {@inheritDoc}
      */
-    @Override
+    // @Override
     public void clear() {
         this.nodes.clear();
     }
@@ -64,8 +65,8 @@ public class JpaNestedSetManager implements NestedSetManager {
     /**
      * {@inheritDoc}
      */
-    @Override
-    public Collection<Node<?>> getNodes() {
+    // @Override
+    public Collection<Node<?>> getManagedNodes() {
         return Collections.unmodifiableCollection(this.nodes.values());
     }
 
@@ -73,15 +74,15 @@ public class JpaNestedSetManager implements NestedSetManager {
      * {@inheritDoc}
      */
     @Override
-    public <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz) {
-        return fetchTreeAsList(clazz, 0);
+    public <T extends NodeInfo> List<Node<T>> listNodes(Class<T> clazz) {
+        return listNodes(clazz, 0);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId) {
+    public <T extends NodeInfo> List<Node<T>> listNodes(Class<T> clazz, int rootId) {
         Configuration config = getConfig(clazz);
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<T> cq = cb.createQuery(clazz);
@@ -90,72 +91,12 @@ public class JpaNestedSetManager implements NestedSetManager {
         cq.orderBy(cb.asc(queryRoot.get(config.getLeftFieldName())));
         applyRootId(clazz, cq, rootId);
 
-        List<Node<T>> tree = new ArrayList<Node<T>>();
+        List<Node<T>> nodes = new ArrayList<Node<T>>();
         for (T n : em.createQuery(cq).getResultList()) {
-            tree.add(getNode(n));
+            nodes.add(getNode(n));
         }
 
-        buildTree(tree, 0);
-
-        return tree;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId) {
-        return fetchTreeAsList(clazz, rootId).get(0);
-    }
-
-    @Override
-    public <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz) {
-        return fetchTree(clazz, 0);
-    }
-
-    /**
-     * Establishes all parent/child/ancestor/descendant relationships of all the nodes in
-     * the given list. As a result, invocations on the corresponding methods on these node
-     * instances will not trigger any database queries.
-     *
-     * @param <T>
-     * @param treeList
-     * @param maxLevel
-     * @return void
-     */
-    private <T extends NodeInfo> void buildTree(List<Node<T>> treeList, int maxLevel) {
-        Node<T> rootNode = treeList.get(0);
-
-        Stack<JpaNode<T>> ancestors = new Stack<JpaNode<T>>();
-        int level = rootNode.getLevel();
-
-        for (Node<T> n : treeList) {
-            JpaNode<T> node = (JpaNode<T>) n;
-
-            for (int i = level - node.getLevel(); i > 0; --i) {
-                ancestors.pop();
-            }
-            level = node.getLevel();
-
-            if (node != rootNode) {
-                JpaNode<T> parent = ancestors.peek();
-                // set parent
-                node.internalSetParent(parent);
-                // add child to parent
-                parent.internalAddChild(node);
-                // set ancestors
-                node.internalSetAncestors(new ArrayList<Node<T>>(ancestors));
-                // add descendant to all ancestors
-                for (JpaNode<T> anc : ancestors) {
-                    anc.internalAddDescendant(node);
-                }
-            }
-
-            if (node.hasChildren() && (maxLevel == 0 || maxLevel > level)) {
-                ancestors.push(node);
-            }
-
-        }
+        return nodes;
     }
 
     /**
@@ -163,6 +104,10 @@ public class JpaNestedSetManager implements NestedSetManager {
      */
     @Override
     public <T extends NodeInfo> Node<T> createRoot(T root) {
+        if (root.getLeftValue() < root.getRightValue()) {
+            throw new IllegalArgumentException("The node already has a position in a tree.");
+        }
+
         Configuration config = getConfig(root.getClass());
 
         int maximumRight;
@@ -175,6 +120,7 @@ public class JpaNestedSetManager implements NestedSetManager {
         root.setRightValue(maximumRight + 2);
         root.setLevel(0);
         em.persist(root);
+
         return getNode(root);
     }
 
@@ -199,20 +145,13 @@ public class JpaNestedSetManager implements NestedSetManager {
         return node;
     }
 
-    /**
-     * INTERNAL:
-     * Gets the nestedset configuration for the given class.
-     *
-     * @param clazz
-     * @return The configuration.
-     */
     Configuration getConfig(Class<?> clazz) {
         if (!this.configs.containsKey(clazz)) {
             Configuration config = new Configuration();
 
             Entity entity = clazz.getAnnotation(Entity.class);
         	String name = entity.name();
-        	config.setEntityName( (name != null && name.length()>0) ? name : clazz.getSimpleName());
+        	config.setEntityName((name != null && name.length() > 0) ? name : clazz.getSimpleName());
 
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.getAnnotation(LeftColumn.class) != null) {
@@ -235,7 +174,7 @@ public class JpaNestedSetManager implements NestedSetManager {
         return this.configs.get(clazz);
     }
 
-    int getMaximumRight(Class<? extends NodeInfo> clazz) {
+    private int getMaximumRight(Class<? extends NodeInfo> clazz) {
     	Configuration config = getConfig(clazz);
     	CriteriaBuilder cb = em.getCriteriaBuilder();
     	CriteriaQuery<? extends NodeInfo> cq = cb.createQuery(clazz);
@@ -249,13 +188,6 @@ public class JpaNestedSetManager implements NestedSetManager {
         }
     }
 
-    /**
-     * INTERNAL:
-     * Applies the root ID criteria to the given CriteriaQuery.
-     *
-     * @param cq
-     * @param rootId
-     */
     void applyRootId(Class<?> clazz, CriteriaQuery<?> cq, int rootId) {
         Configuration config = getConfig(clazz);
         if (config.getRootIdFieldName() != null) {
@@ -266,58 +198,31 @@ public class JpaNestedSetManager implements NestedSetManager {
         }
     }
 
-    /**
-     * INTERNAL:
-     * Updates the left values of all nodes currently known to the manager.
-     *
-     * @param minLeft The lower bound (inclusive) of the left values to update.
-     * @param maxLeft The upper bound (inclusive) of the left values to update.
-     * @param delta The delta to apply on the left values within the range.
-     */
     void updateLeftValues(int minLeft, int maxLeft, int delta, int rootId) {
         for (Node<?> node : this.nodes.values()) {
             if (node.getRootValue() == rootId) {
                 if (node.getLeftValue() >= minLeft && (maxLeft == 0 || node.getLeftValue() <= maxLeft)) {
                     node.setLeftValue(node.getLeftValue() + delta);
-                    ((JpaNode<?>) node).invalidate();
                 }
             }
         }
     }
 
-    /**
-     * INTERNAL:
-     * Updates the right values of all nodes currently known to the manager.
-     *
-     * @param minRight The lower bound (inclusive) of the right values to update.
-     * @param maxRight The upper bound (inclusive) of the right values to update.
-     * @param delta The delta to apply on the right values within the range.
-     */
     void updateRightValues(int minRight, int maxRight, int delta, int rootId) {
         for (Node<?> node : this.nodes.values()) {
             if (node.getRootValue() == rootId) {
                 if (node.getRightValue() >= minRight && (maxRight == 0 || node.getRightValue() <= maxRight)) {
                     node.setRightValue(node.getRightValue() + delta);
-                    ((JpaNode<?>) node).invalidate();
                 }
             }
         }
     }
 
-    /**
-     * INTERNAL:
-     * Updates the level values of all nodes currently known to the manager.
-     *
-     * @param left The lower bound left value.
-     * @param right The upper bound right value.
-     * @param delta The delta to apply on the level values of the nodes within the range.
-     */
     void updateLevels(int left, int right, int delta, int rootId) {
         for (Node<?> node : this.nodes.values()) {
             if (node.getRootValue() == rootId) {
                 if (node.getLeftValue() > left && node.getRightValue() < right) {
                     node.setLevel(node.getLevel() + delta);
-                    ((JpaNode<?>) node).invalidate();
                 }
             }
         }

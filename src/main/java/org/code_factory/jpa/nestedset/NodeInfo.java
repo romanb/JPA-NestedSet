@@ -17,12 +17,12 @@ package org.code_factory.jpa.nestedset;
  */
 public interface NodeInfo {
     Long getId();
-    int getLeftValue();
-    int getRightValue();
-    int getLevel();
-    int getRootValue();
-    void setLeftValue(int value);
-    void setRightValue(int value);
-    void setLevel(int level);
-    void setRootValue(int value);
+    Integer getLeftValue();
+    Integer getRightValue();
+    Integer getLevel();
+    Long getRootValue();
+    void setLeftValue(Integer value);
+    void setRightValue(Integer value);
+    void setLevel(Integer level);
+    void setRootValue(Long value);
 }

@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
   <persistence-unit name="TestPU" transaction-type="RESOURCE_LOCAL">
-    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
     <!--<exclude-unlisted-classes>false</exclude-unlisted-classes>-->
     <class>org.code_factory.jpa.nestedset.model.Category</class>
     <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:hsqldb:mem:unit-testing-jpa"/>
-      <property name="javax.persistence.jdbc.password" value=""/>
-      <property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbcDriver"/>
-      <property name="javax.persistence.jdbc.user" value="sa"/>
-      <!--
-      <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/jpans-test"/>
-      <property name="javax.persistence.jdbc.password" value="dev"/>
-      <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
-      <property name="javax.persistence.jdbc.user" value="dev"/>
-      -->
-      <property name="eclipselink.ddl-generation" value="create-tables"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
+      <property name="hibernate.connection.url" value="jdbc:hsqldb:mem:unit-testing-jpa"/>
+      <property name="hibernate.connection.password" value=""/>
+      <property name="hibernate.connection.driver_class" value="org.hsqldb.jdbcDriver"/>
+      <property name="hibernate.connection.username" value="sa"/>
+
+
+      <!--<property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/test"/>
+      <property name="hibernate.connection.password" value=""/>
+      <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
+      <property name="hibernate.connection.username" value="test"/>-->
+      <!--<property name="eclipselink.ddl-generation" value="create-tables"/>
+      <property name="eclipselink.logging.level" value="FINE"/>-->
       <!--
       <property name="eclipselink.ddl-generation.output-mode" value="database" />
       -->
+      <!--<property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"></property>-->
+      <property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect"/>
+      <property name="hibernate.show_sql" value="true"></property>
+      <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
     </properties>
   </persistence-unit>
 </persistence>

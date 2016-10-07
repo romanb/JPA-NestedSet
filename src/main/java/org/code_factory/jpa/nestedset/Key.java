@@ -11,6 +11,8 @@ package org.code_factory.jpa.nestedset;
 
 import net.jcip.annotations.Immutable;
 
+import java.util.Objects;
+
 /**
  * @author Roman Borschel <roman@code-factory.org>
  */
@@ -27,7 +29,7 @@ class Key {
     @Override public int hashCode() {
         int hash = 7;
         hash = 23 * hash + (this.clazz != null ? this.clazz.hashCode() : 0);
-        hash = 23 * hash + this.id.intValue();
+        hash = 23 * hash + this.id.hashCode();
         return hash;
     }
 

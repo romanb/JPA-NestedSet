@@ -1,6 +1,6 @@
 /**
  * LICENSE
- *
+ * <p>
  * This source file is subject to the MIT license that is bundled
  * with this package in the file MIT.txt.
  * It is also available through the world-wide-web at this URL:
@@ -9,12 +9,15 @@
 
 package org.code_factory.jpa.nestedset;
 
+import org.code_factory.jpa.nestedset.model.Category;
+import org.junit.After;
+import org.junit.Test;
+
 import java.util.Iterator;
 import java.util.List;
-import org.code_factory.jpa.nestedset.model.Category;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import static org.testng.Assert.*;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Roman Borschel <roman@code-factory.org>
@@ -24,8 +27,9 @@ public class BasicTest extends FunctionalNestedSetTest {
     private Category javaCat;
     private Category netCat;
 
-    @AfterMethod
-    @Override protected void closeEntityManager() {
+    @After
+    @Override
+    public void closeEntityManager() {
         super.closeEntityManager();
         this.progCat = null;
         this.javaCat = null;
@@ -59,15 +63,17 @@ public class BasicTest extends FunctionalNestedSetTest {
         nsm.clear();
     }
 
-    @Test public void testCreateRoot() {
+    @Test
+    public void testCreateRoot() {
         Category cat = new Category();
         cat.setName("Java");
+        //cat.setId(1L);
 
         em.getTransaction().begin();
         nsm.createRoot(cat);
         em.getTransaction().commit();
         em.clear();
-
+        System.out.println(cat);
         Category cat2 = em.find(Category.class, cat.getId());
         assert 1 == cat2.getLeftValue();
         assert 2 == cat2.getRightValue();
@@ -76,7 +82,8 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert true == nsm.getNode(cat2).isRoot();
     }
 
-    @Test public void testFetchTree() {
+    @Test
+    public void testFetchTree() {
         this.createBasicTree();
 
         List<Node<Category>> tree = nsm.fetchTreeAsList(Category.class);
@@ -97,14 +104,19 @@ public class BasicTest extends FunctionalNestedSetTest {
                 assert 5 == node.getRightValue();
                 assert 1 == node.getLevel();
             }
+            System.out.println(node);
         }
+
+        List<Map<String, Object>> list = nsm.fetchTreeAsAdjacencyList(Category.class);
+        System.out.println(list.toString());
     }
 
-    @Test public void testBasicTreeNavigation() {
+    @Test
+    public void testBasicTreeNavigation() {
         this.createBasicTree();
 
         Category progCat2 = em.find(Category.class, this.progCat.getId());
-        
+
         Node<Category> progCatNode = nsm.getNode(progCat2);
 
         assert 1 == progCatNode.getLeftValue();
@@ -123,13 +135,14 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert false == child2.hasChildren();
         assert 0 == child1.getChildren().size();
         assert 0 == child2.getChildren().size();
-        
+
         assert progCat2 == child1.getParent().unwrap();
         assert progCat2 == child2.getParent().unwrap();
 
     }
 
-    @Test public void testAddingNodesToTree() {
+    @Test
+    public void testAddingNodesToTree() {
         this.createBasicTree();
 
         assert 0 == this.nsm.getNodes().size();
@@ -177,11 +190,12 @@ public class BasicTest extends FunctionalNestedSetTest {
     /**
      * Tests creating new nodes and moving them around in a tree.
      */
-    @Test public void testMovingNodes() {
+    @Test
+    public void testMovingNodes() {
         this.createBasicTree();
 
         em.getTransaction().begin();
-        
+
         Node<Category> progNode = this.nsm.getNode(em.find(Category.class, this.progCat.getId()));
 
         // Create a new WPF category, placing it under "Programming" first.
@@ -254,7 +268,7 @@ public class BasicTest extends FunctionalNestedSetTest {
     @Test
     public void testDeleteNode() {
         this.createBasicTree();
-        
+
         em.getTransaction().begin();
         // fetch the tree
         Node<Category> progNode = nsm.fetchTree(Category.class, this.progCat.getRootValue());
@@ -266,7 +280,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         Category netCat2 = em.find(Category.class, this.netCat.getId());
         Node<Category> netNode = nsm.getNode(netCat2);
         netNode.delete();
-        
+
         // check in-memory state of tree
         assert 1 == progNode.getLeftValue();
         assert 4 == progNode.getRightValue();
@@ -276,7 +290,8 @@ public class BasicTest extends FunctionalNestedSetTest {
         try {
             nsm.getNode(netCat2);
             fail("Retrieving node for deleted category should fail.");
-        } catch (IllegalArgumentException expected) {}
+        } catch (IllegalArgumentException expected) {
+        }
 
         em.getTransaction().commit();
     }

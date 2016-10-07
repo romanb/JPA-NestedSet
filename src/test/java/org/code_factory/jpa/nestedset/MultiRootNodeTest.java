@@ -10,7 +10,7 @@
 package org.code_factory.jpa.nestedset;
 
 import org.code_factory.jpa.nestedset.model.Category;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 /**
  * @author Roman Borschel <roman@code-factory.org>
@@ -21,15 +21,15 @@ public class MultiRootNodeTest extends FunctionalNestedSetTest {
     public void testCreateTrees() {
         Category javaCat = new Category();
         javaCat.setName("Java");
-        javaCat.setRootValue(1);
+        javaCat.setRootValue(1L);
 
         Category netCat = new Category();
         netCat.setName(".NET");
-        netCat.setRootValue(2);
+        netCat.setRootValue(2L);
 
         Category phpCat = new Category();
         phpCat.setName("PHP");
-        phpCat.setRootValue(3);
+        phpCat.setRootValue(3L);
 
         em.getTransaction().begin();
         nsm.createRoot(javaCat);

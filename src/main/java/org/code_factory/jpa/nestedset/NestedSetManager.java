@@ -11,6 +11,7 @@ package org.code_factory.jpa.nestedset;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManager;
 
 /**
@@ -46,14 +47,13 @@ public interface NestedSetManager {
      * @param rootId
      * @return The root node of the tree.
      */
-    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId);
+    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, Long rootId);
 
     /**
      * Fetches the complete tree, returning the root node of the tree.
      *
      * @param <T>
      * @param clazz
-     * @param rootId
      * @return The root node of the tree.
      */
     <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz);
@@ -75,7 +75,17 @@ public interface NestedSetManager {
      * @param rootId
      * @return The tree in form of a list, starting with the root node.
      */
-    <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId);
+    <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, Long rootId);
+
+    /**
+     *
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    <T extends NodeInfo> List<Map<String, Object>> fetchTreeAsAdjacencyList(Class<T> clazz);
+    <T extends NodeInfo> List<Map<String, Object>> fetchTreeAsAdjacencyList(Class<T> clazz, Long rootId);
+    <T extends NodeInfo> List<Map<String, Object>> fetchTreeAsAdjacencyList(Class<T> clazz, Long rootId, int maxLevel);
 
     /**
      * Gets the EntityManager used by this NestedSetManager.

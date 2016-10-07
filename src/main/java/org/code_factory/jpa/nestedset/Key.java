@@ -11,15 +11,17 @@ package org.code_factory.jpa.nestedset;
 
 import net.jcip.annotations.Immutable;
 
+import java.util.Objects;
+
 /**
  * @author Roman Borschel <roman@code-factory.org>
  */
 @Immutable
 class Key {
     private final Class<?> clazz;
-    private final int id;
+    private final Long id;
 
-    public Key(Class<?> clazz, int id) {
+    public Key(Class<?> clazz, Long id) {
         this.clazz = clazz;
         this.id = id;
     }
@@ -27,7 +29,7 @@ class Key {
     @Override public int hashCode() {
         int hash = 7;
         hash = 23 * hash + (this.clazz != null ? this.clazz.hashCode() : 0);
-        hash = 23 * hash + this.id;
+        hash = 23 * hash + this.id.hashCode();
         return hash;
     }
 
@@ -42,7 +44,7 @@ class Key {
         Key otherKey = (Key) other;
 
         return this.clazz.equals(otherKey.clazz)
-                && this.id == otherKey.id;
+                && this.id.equals(otherKey.id);
     }
 
     @Override public String toString() {

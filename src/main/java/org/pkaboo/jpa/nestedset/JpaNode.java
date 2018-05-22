@@ -33,15 +33,12 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
     private static final int NEXT_SIBLING = 3;
     private static final int LAST_CHILD = 4;
 
-    /** The wrapped NodeInfo implementor. */
+    private final JpaNestedSetManager nsm;
     private final T node;
-    /** The type of the wrapped instance. */
     private final Class<T> type;
+
     private CriteriaQuery<T> baseQuery;
     private Root<T> queryRoot;
-
-    /** The JpaNestedSetManager that manages this node. */
-    private final JpaNestedSetManager nsm;
 
     @SuppressWarnings("unchecked")
     public JpaNode(T node, JpaNestedSetManager nsm) {
@@ -95,25 +92,16 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
                 "]";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasChildren() {
         return (getRightValue() - getLeftValue()) > 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasParent() {
         return !isRoot();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isValid() {
         return isValidNode(this);
@@ -139,25 +127,16 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return (this.getRightValue() - this.getLeftValue() - 1) / 2;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isRoot() {
         return getLeftValue() == 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<Node<T>> getChildren() {
         return getDescendants(1);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Node<T> getParent() {
         if (isRoot()) {
@@ -182,16 +161,10 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return nsm.getNode(result.get(0));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public List<Node<T>> getDescendants() {
         return getDescendants(0);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public List<Node<T>> getDescendants(int depth) {
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> cq = getBaseQuery();
@@ -226,9 +199,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return nodes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public Node<T> addChild(T child) {
         if (child == this.node) {
             throw new IllegalArgumentException("Cannot add node as child of itself.");
@@ -316,9 +286,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         nsm.getEntityManager().persist(this.node);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void delete() {
         int oldRoot = getRootValue();
@@ -424,9 +391,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         this.nsm.updateRightValues(first, last, delta, rootId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public T unwrap() {
         return this.node;
     }
@@ -435,9 +399,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return !hasChildren();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Node<T> getFirstChild() {
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
@@ -449,9 +410,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return nsm.getNode(nsm.getEntityManager().createQuery(cq).getSingleResult());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Node<T> getLastChild() {
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
@@ -463,9 +421,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return nsm.getNode(nsm.getEntityManager().createQuery(cq).getSingleResult());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<Node<T>> getAncestors() {
         CriteriaBuilder cb = nsm.getEntityManager().getCriteriaBuilder();
@@ -489,9 +444,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return nodes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isDescendantOf(Node<T> subj) {
         return ((getLeftValue() > subj.getLeftValue()) &&
@@ -509,9 +461,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         return path.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void moveAsPrevSiblingOf(Node<T> dest) {
         if (dest == this.node) {
@@ -582,9 +531,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         shiftRLValues(right + 1, 0, -treeSize, rootId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void moveAsNextSiblingOf(Node<T> dest) {
         if (dest == this.node) {
@@ -600,9 +546,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void moveAsFirstChildOf(Node<T> dest) {
         if (dest == this.node) {
@@ -619,9 +562,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void moveAsLastChildOf(Node<T> dest) {
         if (dest == this.node) {
@@ -725,11 +665,6 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         shiftRLValues(first, 0, delta, oldRoot);
     }
 
-    /**
-     * Makes this node a root node. Only used in multiple-root trees.
-     *
-     * @param newRootId
-     */
     public void makeRoot(int newRootId) {
         if (isRoot()) {
             return;
@@ -783,5 +718,4 @@ class JpaNode<T extends NodeInfo> implements Node<T> {
         setRootValue(newRootId);
         setLevel(0);
     }
-
 }

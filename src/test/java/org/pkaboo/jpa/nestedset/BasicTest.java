@@ -127,7 +127,6 @@ public class BasicTest extends FunctionalNestedSetTest {
 
         assert progCat2 == child1.getParent().unwrap();
         assert progCat2 == child2.getParent().unwrap();
-
     }
 
     @Test
@@ -412,6 +411,5 @@ public class BasicTest extends FunctionalNestedSetTest {
         TreeView<Category> viewK = childrenI.get(1);
         assert catJ == viewJ.node;
         assert catK == viewK.node;
-
     }
 }

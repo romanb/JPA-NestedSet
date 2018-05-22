@@ -39,7 +39,7 @@ public interface NestedSetManager {
      *
      * @param <T>
      * @param clazz
-     * @return The tree in form of a list, starting with the root node.
+     * @return The nodes of the tree.
      */
     <T extends NodeInfo> List<Node<T>> listNodes(Class<T> clazz);
 
@@ -49,7 +49,7 @@ public interface NestedSetManager {
      * @param <T>
      * @param clazz
      * @param rootId The tree ID.
-     * @return The tree in form of a list, starting with the root node.
+     * @return The nodes of the tree.
      */
     <T extends NodeInfo> List<Node<T>> listNodes(Class<T> clazz, int rootId);
 

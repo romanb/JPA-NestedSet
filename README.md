@@ -58,7 +58,7 @@ Using this library generally involves the following steps:
 
 The current implementation does not in itself maintain integrity of tree structures
 (left / right / level / root attributes) in the presence of concurrent modifications.
-If there is a possiblity for concurrent tree modifications, measures must be
+If there is a possibility for concurrent tree modifications, measures must be
 taken to prevent tree corruption, e.g. through SERIALIZABLE transaction isolation
 or additional [optimistic](http://martinfowler.com/eaaCatalog/optimisticOfflineLock.html)
 or [pessimistic](http://martinfowler.com/eaaCatalog/pessimisticOfflineLock.html)
